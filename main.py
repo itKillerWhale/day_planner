@@ -2,7 +2,9 @@ import sys
 import json
 
 from PyQt5 import uic, QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGroupBox, QVBoxLayout
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGroupBox, QVBoxLayout, QCheckBox
 
 
 class GroupBox(QGroupBox):
@@ -38,20 +40,29 @@ class MyWidget(QMainWindow):
         for key in tsaks.keys():
             k += 1
             Group = GroupBox(f'Задача {k}')
+
             Group.setObjectName(f'task {k}')
             Group.clicked.connect(self.onGroupClick)
-            Group.setFixedHeight(65)
+            Group.setFixedHeight(100)
             Layout = QVBoxLayout()
             Group.setLayout(Layout)
 
-            Item1 = QLabel(tsaks[key][0], objectName="Item1")
+            Item1_text = tsaks[key][0] + "_" + " ".join(key.split(";"))
+            Item1 = QLabel(Item1_text, objectName="Item1")
             Item1.setFixedHeight(21)
+            Item1.setFont(QFont("MS Shell Dlg 2", 11, QFont.Bold))
 
             Item2 = QLabel(tsaks[key][1], objectName="Item2")
             Item2.setFixedHeight(21)
+            Item2.setFont(QFont("MS Shell Dlg 2", 8))
 
-            Item3 = QLabel(tsaks[key][2], objectName="Item3")
+            Item3 = QCheckBox("Завершено", objectName="Item3")
             Item3.setFixedHeight(21)
+            Item3.setFont(QFont("MS Shell Dlg 2", 8))
+
+            Item4 = QLabel(" ".join(key.split(";")), objectName="Item4")
+            Item4.setFixedHeight(21)
+            Item4.setFont(QFont("MS Shell Dlg 2", 8))
 
             Layout.addWidget(Item1)
             Layout.addWidget(Item2)
@@ -69,3 +80,6 @@ if __name__ == '__main__':
     ex = MyWidget()
     ex.show()
     sys.exit(app.exec_())
+
+
+# 36
