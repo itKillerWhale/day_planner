@@ -25,6 +25,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QScrollArea" name="scrollArea">
     <property name="geometry">
@@ -190,7 +193,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="btn_find">
+   <widget class="QPushButton" name="btn_clear_find">
     <property name="geometry">
      <rect>
       <x>450</x>
@@ -200,7 +203,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Найти</string>
+     <string>Отчистить поиск</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_tasks">
