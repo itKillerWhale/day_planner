@@ -5,7 +5,7 @@ from PyQt5 import uic, QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QPalette
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGroupBox, QVBoxLayout, QCheckBox, QWidget, \
-    QGridLayout
+    QGridLayout, QDialog
 
 
 class GroupBox(QGroupBox):
@@ -23,10 +23,19 @@ class GroupBox(QGroupBox):
         self.clicked.emit(self.title, child)
 
 
+class CustomDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('ui/CustomDialog.ui', self)
+
+        self.setWindowTitle("HELLO!")
+
+
 class MyWidget(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('ui/MainWindow.ui', self)
+        self.setWindowTitle("Планировщик задач на день")
 
         self.comboBox_sort.activated.connect(self.update_tasks)
         self.cb_reverse_sort.stateChanged.connect(self.update_tasks)
@@ -34,6 +43,8 @@ class MyWidget(QMainWindow):
         self.lineEdit_find.textChanged.connect(self.update_tasks)
 
         self.btn_clear_find.clicked.connect(self.clear_find_text)
+        self.btn_do_all_completed_task.clicked.connect(self.do_all_tasks_complited)
+        self.btn_new_task.clicked.connect(self.button_clicked)
 
         self.vbox = QVBoxLayout()
 
@@ -150,6 +161,35 @@ class MyWidget(QMainWindow):
 
         with open('tasks.json', 'w') as file:
             json.dump(dictionary, file)
+
+        if cb.isChecked():
+            group.setStyleSheet(
+                "QGroupBox{ background-color: #A5A5A5; border: 2px soild gray; border-radius: 3px; magrin-top: 10px}")
+
+        else:
+            group.setStyleSheet(
+                "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
+
+    def do_all_tasks_complited(self):
+        with open('tasks.json') as file:
+            dictionary = json.load(file)
+
+        for key in dictionary["tasks"].keys():
+            dictionary["tasks"][key][2] = True
+
+        with open('tasks.json', 'w') as file:
+            json.dump(dictionary, file)
+
+        self.update_tasks()
+
+    def button_clicked(self, s):
+        print("click", s)
+
+        dlg = CustomDialog()
+        if dlg.exec():
+            print("Success!")
+        else:
+            print("Cancel!")
 
 
 def except_hook(cls, exception, traceback):
