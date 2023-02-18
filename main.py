@@ -28,6 +28,9 @@ class MyWidget(QMainWindow):
         super().__init__()
         uic.loadUi('ui/MainWindow.ui', self)
 
+        self.comboBox_sort.activated.connect(self.update_tasks)
+        self.cb_reverse_sort.stateChanged.connect(self.update_tasks)
+
         self.vbox = QVBoxLayout()
 
         self.update_tasks()
@@ -35,9 +38,25 @@ class MyWidget(QMainWindow):
     def update_tasks(self):
         with open('tasks.json') as file:
             data = json.load(file)
-        tsaks = data["tasks"]
+        tasks = data["tasks"]
+        tasks_key_list = tasks.keys()
 
         # Сортировка
+        comboBox_text = self.comboBox_sort.currentText()
+        do_revers = self.cb_reverse_sort.isChecked()
+
+        if comboBox_text == "Дате создания":
+            tasks_key_list = sorted(tasks_key_list, key=lambda x: x[::-1], reverse=not do_revers)
+
+        elif comboBox_text == "Дате напоминания":
+            pass
+
+        elif comboBox_text == "Заголовку":
+            tasks_key_list = sorted(tasks_key_list, key=lambda x: tasks[x][0].lower(), reverse=do_revers)
+
+        else:
+            tasks_key_list = sorted(tasks_key_list, key=lambda x: tasks[x][1].lower(), reverse=do_revers)
+
 
 
         scrollLayout = QVBoxLayout()
@@ -49,7 +68,7 @@ class MyWidget(QMainWindow):
         scrollLayout.setAlignment(QtCore.Qt.AlignTop)
 
         k = 0
-        for key in tsaks.keys():
+        for key in tasks_key_list:
             k += 1
             Group = GroupBox(f'Задача {k}')
 
@@ -60,12 +79,12 @@ class MyWidget(QMainWindow):
             Layout = QGridLayout()
             Group.setLayout(Layout)
 
-            Item1_text = tsaks[key][0] + "_" + " ".join(key.split(";"))
+            Item1_text = tasks[key][0]
             Item1 = QLabel(Item1_text, objectName="Item1")
             Item1.setFixedHeight(21)
             Item1.setFont(QFont("MS Shell Dlg 2", 11, QFont.Bold))
 
-            Item2 = QLabel(tsaks[key][1], objectName="Item2")
+            Item2 = QLabel(tasks[key][1], objectName="Item2")
             Item2.setFixedHeight(21)
             Item2.setFont(QFont("MS Shell Dlg 2", 8))
 
@@ -73,7 +92,9 @@ class MyWidget(QMainWindow):
             Item3.setFixedHeight(21)
             Item3.setFont(QFont("MS Shell Dlg 2", 8))
 
-            Item4 = QLabel("asd", objectName="Item4")
+            time_1, time_2 = tuple(key.split(";"))
+            time_1 = ":".join(time_1.split(":")[::-1])
+            Item4 = QLabel(" ".join([time_2, time_1]), objectName="Item4")
             Item4.setFixedHeight(21)
             Item4.setFont(QFont("MS Shell Dlg 2", 8))
 
