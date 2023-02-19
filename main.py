@@ -1,5 +1,9 @@
 import sys
 import json
+import datetime
+
+import qtmodern.styles
+import qtmodern.windows
 
 from PyQt5 import uic, QtCore
 from PyQt5.QtCore import Qt
@@ -24,11 +28,60 @@ class GroupBox(QGroupBox):
 
 
 class CustomDialog(QDialog):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, key, parent=None):
+        super().__init__(parent)
         uic.loadUi('ui/CustomDialog.ui', self)
+        self.setWindowTitle("Задача")
 
-        self.setWindowTitle("HELLO!")
+        self.key = key
+
+        self.btn_ok.clicked.connect(self.save)
+        self.btn_cancel.clicked.connect(self.close_window)
+
+        if bool(self.key):
+            with open('tasks.json') as file:
+                data = json.load(file)
+            task = data["tasks"][self.key]
+
+            self.lineEdit_header_text.setText(task[0])
+            self.textEdit_text.setText(task[1])
+            self.checkBox_completed.setChecked(task[2])
+
+            time_1, time_2 = tuple(self.key.split(";"))
+            time_1 = ":".join(time_1.split(":")[::-1])
+
+            self.label_date.setText(" ".join([time_2, time_1]))
+
+        else:
+            self.label_date.setText("")
+            print(datetime.datetime.now())
+
+    def save(self):
+        with open('tasks.json') as file:
+            dictionary = json.load(file)
+
+        if bool(self.key):
+            if bool(self.lineEdit_header_text.text()):
+                dictionary["tasks"][self.key][0] = self.lineEdit_header_text.text()
+                dictionary["tasks"][self.key][1] = self.textEdit_text.toPlainText()
+                dictionary["tasks"][self.key][2] = self.checkBox_completed.isChecked()
+
+        else:
+            date, time = str(datetime.datetime.now()).split()
+            time = ":".join(list(map(lambda x: str(round(float(x))).rjust(2, "0"), time.split(":")[::-1])))
+            date = ":".join(date.split("-")[::-1])
+            self.key = f"{time};{date}"
+
+            dictionary["tasks"][self.key] = [self.lineEdit_header_text.text(), self.textEdit_text.toPlainText(),
+                                             self.checkBox_completed.isChecked()]
+
+        with open('tasks.json', 'w') as file:
+            json.dump(dictionary, file)
+
+        self.close_window()
+
+    def close_window(self):
+        self.close()
 
 
 class MyWidget(QMainWindow):
@@ -44,7 +97,8 @@ class MyWidget(QMainWindow):
 
         self.btn_clear_find.clicked.connect(self.clear_find_text)
         self.btn_do_all_completed_task.clicked.connect(self.do_all_tasks_complited)
-        self.btn_new_task.clicked.connect(self.button_clicked)
+        self.btn_new_task.clicked.connect(self.new_task)
+        self.btn_del_all_completed_task.clicked.connect(self.delite_all_complited_tasks)
 
         self.vbox = QVBoxLayout()
 
@@ -99,23 +153,28 @@ class MyWidget(QMainWindow):
 
             if tasks[key][2]:
                 Group.setStyleSheet(
-                    "QGroupBox{ background-color: #A5A5A5; border: 2px soild gray; border-radius: 3px; magrin-top: 10px}")
+                    "QGroupBox{ background-color: #696969; border: 2px soild gray; border-radius: 3px; magrin-top: 10px}")
             else:
                 Group.setStyleSheet(
                     "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
-            Group.setObjectName(f'task {k}')
+            Group.setObjectName(f'Задача {k}')
             Group.clicked.connect(self.onGroupClick)
             Group.setFixedHeight(100)
             Group.setFixedWidth(330)
             Layout = QGridLayout()
             Group.setLayout(Layout)
 
-            Item1_text = tasks[key][0]
+            Item1_text = tasks[key][0].replace("\n", " ")
+            if len(Item1_text) > 18:
+                Item1_text = Item1_text[:18] + "..."
             Item1 = QLabel(Item1_text, objectName="Item1")
             Item1.setFixedHeight(21)
             Item1.setFont(QFont("MS Shell Dlg 2", 11, QFont.Bold))
 
-            Item2 = QLabel(tasks[key][1], objectName="Item2")
+            Item2_text = tasks[key][1].replace("\n", " ")
+            if len(Item2_text) > 28:
+                Item2_text = Item2_text[:28] + "..."
+            Item2 = QLabel(Item2_text, objectName="Item2")
             Item2.setFixedHeight(21)
             Item2.setFont(QFont("MS Shell Dlg 2", 8))
 
@@ -129,6 +188,7 @@ class MyWidget(QMainWindow):
             time_1 = ":".join(time_1.split(":")[::-1])
             Item4 = QLabel(" ".join([time_2, time_1]), objectName="Item4")
             Item4.setFixedHeight(21)
+            Item4.setFixedWidth(110)
             Item4.setFont(QFont("MS Shell Dlg 2", 8))
 
             Layout.addWidget(Item1, 0, 0)
@@ -139,7 +199,20 @@ class MyWidget(QMainWindow):
             scrollLayout.addWidget(Group)
 
     def onGroupClick(self, title, obj):
-        print(f"Group: {title}; objectName=`{obj.objectName()}`")
+        group = self.scrollArea.findChild(QGroupBox, title)
+
+        key = group.findChild(QLabel, "Item4").text()
+        key_2, key_1 = key.split()
+        key_1 = ":".join(key_1.split(":")[::-1])
+        key = f"{key_1};{key_2}"
+
+        dlg = CustomDialog(key, parent=self)
+        mw = qtmodern.windows.ModernWindow(dlg)
+        mw.move(200, 200)
+        mw.show()
+
+        dlg.exec()
+        self.update_tasks()
 
     def clear_find_text(self):
         self.lineEdit_find.setText("")
@@ -164,7 +237,7 @@ class MyWidget(QMainWindow):
 
         if cb.isChecked():
             group.setStyleSheet(
-                "QGroupBox{ background-color: #A5A5A5; border: 2px soild gray; border-radius: 3px; magrin-top: 10px}")
+                "QGroupBox{ background-color: #696969; border: 2px soild gray; border-radius: 3px; magrin-top: 10px}")
 
         else:
             group.setStyleSheet(
@@ -182,14 +255,32 @@ class MyWidget(QMainWindow):
 
         self.update_tasks()
 
-    def button_clicked(self, s):
-        print("click", s)
 
-        dlg = CustomDialog()
-        if dlg.exec():
-            print("Success!")
-        else:
-            print("Cancel!")
+    def delite_all_complited_tasks(self):
+        with open('tasks.json') as file:
+            dictionary = json.load(file)
+
+        tasks = dictionary["tasks"]
+        tasks_copy = tasks.copy()
+        for key in tasks_copy:
+            if tasks[key][2]:
+                del tasks[key]
+
+        dictionary["tasks"] = tasks
+
+        with open('tasks.json', 'w') as file:
+            json.dump(dictionary, file)
+
+        self.update_tasks()
+
+    def new_task(self):
+        dlg = CustomDialog("", parent=self)
+        mw = qtmodern.windows.ModernWindow(dlg)
+        mw.move(200, 200)
+        mw.show()
+
+        dlg.exec()
+        self.update_tasks()
 
 
 def except_hook(cls, exception, traceback):
@@ -199,7 +290,12 @@ def except_hook(cls, exception, traceback):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MyWidget()
-    ex.show()
+
+    qtmodern.styles.dark(app)
+    mw = qtmodern.windows.ModernWindow(ex)
+    mw.move(200, 200)
+
+    mw.show()
     sys.excepthook = except_hook
     sys.exit(app.exec_())
 

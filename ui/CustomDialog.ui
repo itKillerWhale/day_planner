@@ -6,14 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>397</width>
-    <height>558</height>
+    <width>400</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QLineEdit" name="lineEdit">
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QLineEdit" name="lineEdit_header_text">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -33,7 +36,7 @@
     <string/>
    </property>
   </widget>
-  <widget class="QTextEdit" name="textEdit">
+  <widget class="QTextEdit" name="textEdit_text">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -43,7 +46,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox">
+  <widget class="QCheckBox" name="checkBox_completed">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -56,7 +59,7 @@
     <string>Завершенно</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="label_date">
    <property name="geometry">
     <rect>
      <x>96</x>
@@ -94,7 +97,7 @@
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox_2">
+  <widget class="QCheckBox" name="checkBox_do_prompt">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -220,6 +223,16 @@
      </item>
      <item>
       <property name="text">
+       <string>Недель</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Месяцев</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>Лет</string>
       </property>
      </item>
@@ -256,19 +269,94 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>60</y>
+       <y>90</y>
        <width>361</width>
-       <height>211</height>
+       <height>171</height>
       </rect>
      </property>
      <property name="text">
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap>../img/my_cat.jpg</pixmap>
+      <pixmap>../img/my_cat.png</pixmap>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>16</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>8</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>В</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QTimeEdit" name="timeEdit_2">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>60</y>
+       <width>151</width>
+       <height>21</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_7">
+     <property name="geometry">
+      <rect>
+       <x>180</x>
+       <y>60</y>
+       <width>47</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>8</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Дня</string>
      </property>
     </widget>
    </widget>
+  </widget>
+  <widget class="QPushButton" name="btn_ok">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>540</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Готово</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_cancel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>540</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Отмена</string>
+   </property>
   </widget>
  </widget>
  <resources/>
