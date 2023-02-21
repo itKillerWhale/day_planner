@@ -60,33 +60,33 @@ class CustomDialog(QDialog):
 
             self.checkBox_do_prompts.setChecked(prompt["date"][self.key][2] or prompt["every"][self.key][3])
 
-            if prompt["date"][self.key][2]:
-                date_list = list(map(int, prompt["date"][self.key][1].split(':')[::-1]))
-                self.calendarWidget.setSelectedDate(QDate(date_list[0], date_list[1], date_list[2]))
+            # Первый tab
+            date_list = list(map(int, prompt["date"][self.key][1].split(':')[::-1]))
+            self.calendarWidget.setSelectedDate(QDate(date_list[0], date_list[1], date_list[2]))
 
-                time_list = list(map(int, prompt["date"][self.key][0].split(":")))
-                self.timeEdit.setTime(QTime(time_list[1], time_list[0]))
+            time_list = list(map(int, prompt["date"][self.key][0].split(":")))
+            self.timeEdit.setTime(QTime(time_list[1], time_list[0]))
 
-                self.tabWidget.setTabEnabled(0, True)
+            self.tabWidget.setTabEnabled(0, True)
 
-            if prompt["every"][self.key][3]:
-                self.comboBox.setCurrentText(prompt["every"][self.key][2])
-                self.important_function()
+            # Второй tab
+            self.comboBox.setCurrentText(prompt["every"][self.key][2])
+            self.important_function()
 
-                self.spinBox.setValue(prompt["every"][self.key][1])
+            self.spinBox.setValue(prompt["every"][self.key][1])
 
-                time_list = list(map(int, prompt["every"][self.key][0].split(":")))
-                self.timeEdit_2.setTime(QTime(time_list[1], time_list[0]))
+            time_list = list(map(int, prompt["every"][self.key][0].split(":")))
+            self.timeEdit_2.setTime(QTime(time_list[1], time_list[0]))
 
-                self.tabWidget.setTabEnabled(1, True)
+            self.tabWidget.setTabEnabled(1, True)
 
-            if self.tab.isEnabled() and self.tab_2.isEnabled():
+            if prompt["date"][self.key][2] and prompt["every"][self.key][3]:
                 self.comboBox_choice.setCurrentIndex(2)
 
-            elif self.tab.isEnabled():
+            elif prompt["date"][self.key][2]:
                 self.comboBox_choice.setCurrentIndex(1)
 
-            elif self.tab_2.isEnabled():
+            elif prompt["every"][self.key][3]:
                 self.comboBox_choice.setCurrentIndex(0)
 
 
@@ -147,6 +147,7 @@ class CustomDialog(QDialog):
             self.tabWidget.setEnabled(True)
             self.comboBox_choice.show()
 
+            print(self.comboBox_choice.currentIndex())
             self.tabWidget.setTabEnabled(self.comboBox_choice.currentIndex(), False)
 
         else:
