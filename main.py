@@ -5,8 +5,10 @@ import datetime
 import qtmodern.styles
 import qtmodern.windows
 
+import qdarkstyle
+
 from PyQt5 import uic, QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTime, QDate, QDateTime
 from PyQt5.QtGui import QFont, QPalette
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGroupBox, QVBoxLayout, QCheckBox, QWidget, \
     QGridLayout, QDialog
@@ -37,11 +39,15 @@ class CustomDialog(QDialog):
 
         self.btn_ok.clicked.connect(self.save)
         self.btn_cancel.clicked.connect(self.close_window)
+        self.checkBox_do_prompts.stateChanged.connect(self.update_prompts_widget)
+        self.comboBox_choice.activated.connect(self.update_prompts_widget)
+        self.comboBox.activated.connect(self.important_function)
 
         if bool(self.key):
             with open('tasks.json') as file:
                 data = json.load(file)
             task = data["tasks"][self.key]
+            prompt = data["prompts"]
 
             self.lineEdit_header_text.setText(task[0])
             self.textEdit_text.setText(task[1])
@@ -52,9 +58,48 @@ class CustomDialog(QDialog):
 
             self.label_date.setText(" ".join([time_2, time_1]))
 
+            self.checkBox_do_prompts.setChecked(prompt["date"][self.key][2] or prompt["every"][self.key][3])
+
+            if prompt["date"][self.key][2]:
+                date_list = list(map(int, prompt["date"][self.key][1].split(':')[::-1]))
+                self.calendarWidget.setSelectedDate(QDate(date_list[0], date_list[1], date_list[2]))
+
+                time_list = list(map(int, prompt["date"][self.key][0].split(":")))
+                self.timeEdit.setTime(QTime(time_list[1], time_list[0]))
+
+                self.tabWidget.setTabEnabled(0, True)
+
+            if prompt["every"][self.key][3]:
+                self.comboBox.setCurrentText(prompt["every"][self.key][2])
+                self.important_function()
+
+                self.spinBox.setValue(prompt["every"][self.key][1])
+
+                time_list = list(map(int, prompt["every"][self.key][0].split(":")))
+                self.timeEdit_2.setTime(QTime(time_list[1], time_list[0]))
+
+                self.tabWidget.setTabEnabled(1, True)
+
+            if self.tab.isEnabled() and self.tab_2.isEnabled():
+                self.comboBox_choice.setCurrentIndex(2)
+
+            elif self.tab.isEnabled():
+                self.comboBox_choice.setCurrentIndex(1)
+
+            elif self.tab_2.isEnabled():
+                self.comboBox_choice.setCurrentIndex(0)
+
+
+
+
+
+
+
         else:
             self.label_date.setText("")
-            print(datetime.datetime.now())
+            self.timeEdit.setTime(QTime.currentTime().addSecs(600))
+
+        self.update_prompts_widget()
 
     def save(self):
         with open('tasks.json') as file:
@@ -75,10 +120,48 @@ class CustomDialog(QDialog):
             dictionary["tasks"][self.key] = [self.lineEdit_header_text.text(), self.textEdit_text.toPlainText(),
                                              self.checkBox_completed.isChecked()]
 
+        # if self.checkBox_do_prompts.isChecked():
+        selected_date = self.calendarWidget.selectedDate()
+        date_string = selected_date.toString("dd:MM:yyyy")
+
+        time = self.timeEdit.time()
+        time_string = time.toString("mm:hh")
+
+        time_2 = self.timeEdit_2.time()
+        time_string_2 = time_2.toString("mm:hh")
+
+        dictionary["prompts"]["date"][self.key] = [time_string, date_string, self.tab.isEnabled()]
+        dictionary["prompts"]["every"][self.key] = [time_string_2, self.spinBox.value(), self.comboBox.currentText(),
+                                                    self.tab_2.isEnabled()]
+
         with open('tasks.json', 'w') as file:
             json.dump(dictionary, file)
 
         self.close_window()
+
+    def update_prompts_widget(self):
+        self.tabWidget.setTabEnabled(0, True)
+        self.tabWidget.setTabEnabled(1, True)
+
+        if self.checkBox_do_prompts.isChecked():
+            self.tabWidget.setEnabled(True)
+            self.comboBox_choice.show()
+
+            self.tabWidget.setTabEnabled(self.comboBox_choice.currentIndex(), False)
+
+        else:
+            self.tabWidget.setEnabled(False)
+
+            self.tabWidget.setTabEnabled(0, False)
+            self.tabWidget.setTabEnabled(1, False)
+
+            self.comboBox_choice.hide()
+
+    def important_function(self):
+        if self.comboBox.currentIndex() < 2:
+            self.label_6.setText("C")
+        else:
+            self.label_6.setText("В")
 
     def close_window(self):
         self.close()
@@ -228,9 +311,7 @@ class MyWidget(QMainWindow):
         with open('tasks.json') as file:
             dictionary = json.load(file)
 
-        # print(dictionary["tasks"][time][2])
         dictionary["tasks"][time][2] = cb.isChecked()
-        # print(dictionary["tasks"][time][2])
 
         with open('tasks.json', 'w') as file:
             json.dump(dictionary, file)
@@ -254,7 +335,6 @@ class MyWidget(QMainWindow):
             json.dump(dictionary, file)
 
         self.update_tasks()
-
 
     def delite_all_complited_tasks(self):
         with open('tasks.json') as file:
@@ -298,5 +378,3 @@ if __name__ == '__main__':
     mw.show()
     sys.excepthook = except_hook
     sys.exit(app.exec_())
-
-# 36
