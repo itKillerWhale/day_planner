@@ -126,6 +126,7 @@ class Task(QDialog):
         if bool(self.key):
             with open('db/tasks.json') as file:
                 data = json.load(file)
+            print(data["tasks"].keys())
             task = data["tasks"][self.key]
             prompt = data["prompts"]
 
@@ -134,6 +135,7 @@ class Task(QDialog):
             self.checkBox_completed.setChecked(task[2])
 
             time_1, time_2 = tuple(self.key.split(";"))
+            time_2 = time_2.replace(":", ".")
             time_1 = ":".join(time_1.split(":")[::-1])
 
             self.label_date.setText(" ".join([time_2, time_1]))
@@ -212,7 +214,7 @@ class Task(QDialog):
 
         data["prompts"]["date"][self.key] = [time_string, date_string, self.tab.isEnabled()]
         data["prompts"]["every"][self.key] = [time_string_2, self.spinBox.value(), self.comboBox.currentText(),
-                                              self.tab_2.isEnabled()]
+                                              self.tab_2.isEnabled(), 1]
 
         with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
@@ -421,13 +423,17 @@ class MyWidget(QMainWindow):
         with open('db/tasks.json') as file:
             data = json.load(file)
 
+        prompts = data["prompts"]
         tasks = data["tasks"]
         tasks_copy = tasks.copy()
         for key in tasks_copy:
             if tasks[key][2]:
                 del tasks[key]
+                del prompts["date"][key]
+                del prompts["every"][key]
 
         data["tasks"] = tasks
+        data["prompts"] = prompts
 
         with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
