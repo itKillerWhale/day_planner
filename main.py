@@ -7,12 +7,12 @@ import qtmodern.styles
 import qtmodern.windows
 
 import telebot
-from bot_key import bot_key
+from bot.bot_key import bot_key
 
 from PyQt5 import uic, QtCore
-from PyQt5.QtCore import Qt, QTime, QDate, QDateTime
-from PyQt5.QtGui import QFont, QPalette
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGroupBox, QVBoxLayout, QCheckBox, QWidget, \
+from PyQt5.QtCore import QTime, QDate
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QGroupBox, QVBoxLayout, QCheckBox, QWidget, \
     QGridLayout, QDialog
 
 
@@ -44,7 +44,7 @@ class Connect(QDialog):
         self.btn_ok.clicked.connect(self.close_window)
         self.btn_cancel.clicked.connect(self.close_window)
 
-        with open('settings.json') as file:
+        with open('db/settings.json') as file:
             data = json.load(file)
 
         if bool(data["telegram"]["id"]):
@@ -74,7 +74,7 @@ class Settings(QDialog):
         self.btn_cancel.clicked.connect(self.close_window)
         self.btn_connect_bot.clicked.connect(self.connect_bot)
 
-        with open('settings.json') as file:
+        with open('db/settings.json') as file:
             data = json.load(file)
 
         self.comboBox_theme.setCurrentText(data["theme"])
@@ -83,13 +83,13 @@ class Settings(QDialog):
             "Бот подключён" if bool(data["telegram"]["id"]) else "(Для получения напоминаний подключите бота)")
 
     def save(self):
-        with open('settings.json') as file:
+        with open('db/settings.json') as file:
             data = json.load(file)
 
         data["theme"] = self.comboBox_theme.currentText()
         data["telegram"]["send"] = self.checkBox_send.isChecked()
 
-        with open('settings.json', 'w') as file:
+        with open('db/settings.json', 'w') as file:
             json.dump(data, file)
 
         self.close_window()
@@ -124,7 +124,7 @@ class Task(QDialog):
         self.comboBox.activated.connect(self.important_function)
 
         if bool(self.key):
-            with open('tasks.json') as file:
+            with open('db/tasks.json') as file:
                 data = json.load(file)
             task = data["tasks"][self.key]
             prompt = data["prompts"]
@@ -182,7 +182,7 @@ class Task(QDialog):
         self.update_prompts_widget()
 
     def save(self):
-        with open('tasks.json') as file:
+        with open('db/tasks.json') as file:
             data = json.load(file)
 
         if bool(self.key):
@@ -214,7 +214,7 @@ class Task(QDialog):
         data["prompts"]["every"][self.key] = [time_string_2, self.spinBox.value(), self.comboBox.currentText(),
                                               self.tab_2.isEnabled()]
 
-        with open('tasks.json', 'w') as file:
+        with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
 
         self.close_window()
@@ -269,7 +269,7 @@ class MyWidget(QMainWindow):
         self.update_tasks()
 
     def update_tasks(self):
-        with open('tasks.json') as file:
+        with open('db/tasks.json') as file:
             data = json.load(file)
         tasks = data["tasks"]
         tasks_key_list = tasks.keys()
@@ -389,12 +389,12 @@ class MyWidget(QMainWindow):
         time_1 = ":".join(time_1.split(":")[::-1])
         time = f"{time_1};{time_2}"
 
-        with open('tasks.json') as file:
+        with open('db/tasks.json') as file:
             data = json.load(file)
 
         data["tasks"][time][2] = cb.isChecked()
 
-        with open('tasks.json', 'w') as file:
+        with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
 
         if cb.isChecked():
@@ -406,19 +406,19 @@ class MyWidget(QMainWindow):
                 "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
 
     def do_all_tasks_complited(self):
-        with open('tasks.json') as file:
+        with open('db/tasks.json') as file:
             data = json.load(file)
 
         for key in data["tasks"].keys():
             data["tasks"][key][2] = True
 
-        with open('tasks.json', 'w') as file:
+        with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
 
         self.update_tasks()
 
     def delite_all_complited_tasks(self):
-        with open('tasks.json') as file:
+        with open('db/tasks.json') as file:
             data = json.load(file)
 
         tasks = data["tasks"]
@@ -429,7 +429,7 @@ class MyWidget(QMainWindow):
 
         data["tasks"] = tasks
 
-        with open('tasks.json', 'w') as file:
+        with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
 
         self.update_tasks()
@@ -458,7 +458,7 @@ def except_hook(cls, exception, traceback):
 
 
 if __name__ == '__main__':
-    with open('settings.json') as file:
+    with open('db/settings.json') as file:
         data = json.load(file)
 
     theme = data["theme"] == "dark"
@@ -469,12 +469,12 @@ if __name__ == '__main__':
     @bot.message_handler(content_types=["text"])
     def get_message(message):
         if message.text == Connect.key:
-            with open('settings.json') as file:
+            with open('db/settings.json') as file:
                 data = json.load(file)
 
             data["telegram"]["id"] = f"{message.chat.id}"
 
-            with open('settings.json', 'w') as file:
+            with open('db/settings.json', 'w') as file:
                 json.dump(data, file)
 
         try:
