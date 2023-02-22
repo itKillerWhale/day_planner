@@ -1,11 +1,13 @@
 import sys
 import json
 import datetime
+import random
 
 import qtmodern.styles
 import qtmodern.windows
 
-import qdarkstyle
+import telebot
+from bot_key import bot_key
 
 from PyQt5 import uic, QtCore
 from PyQt5.QtCore import Qt, QTime, QDate, QDateTime
@@ -29,7 +31,85 @@ class GroupBox(QGroupBox):
         self.clicked.emit(self.title, child)
 
 
-class CustomDialog(QDialog):
+class Connect(QDialog):
+    key = ""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        uic.loadUi('ui/Connect_bot.ui', self)
+        self.setWindowTitle("Соеденение")
+
+        self.exit_ifo = ""
+
+        self.btn_ok.clicked.connect(self.close_window)
+        self.btn_cancel.clicked.connect(self.close_window)
+
+        with open('settings.json') as file:
+            data = json.load(file)
+
+        if bool(data["telegram"]["id"]):
+            self.label.setText("Подключено")
+
+        self.list_for_choice = ["QW", "fS", "CXC", "ITU", "SAD", "gTS", "TUi", "BMr", "RLee"]
+
+        self.generate_key()
+
+    def generate_key(self):
+        Connect.key = f"I{random.randint(0, 100)}{random.choice(self.list_for_choice)}{random.randint(0, 100)}GO"
+        self.lineEdit_key.setText(Connect.key)
+
+    def close_window(self):
+        print(self.sender().text())
+        self.exit_ifo = self.sender().text()
+        self.close()
+
+
+class Settings(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        uic.loadUi('ui/Settings.ui', self)
+        self.setWindowTitle("Настройки")
+
+        self.btn_ok.clicked.connect(self.save)
+        self.btn_cancel.clicked.connect(self.close_window)
+        self.btn_connect_bot.clicked.connect(self.connect_bot)
+
+        with open('settings.json') as file:
+            data = json.load(file)
+
+        self.comboBox_theme.setCurrentText(data["theme"])
+        self.checkBox_send.setChecked(data["telegram"]["send"])
+        self.label_send_2.setText(
+            "Бот подключён" if bool(data["telegram"]["id"]) else "(Для получения напоминаний подключите бота)")
+
+    def save(self):
+        with open('settings.json') as file:
+            data = json.load(file)
+
+        data["theme"] = self.comboBox_theme.currentText()
+        data["telegram"]["send"] = self.checkBox_send.isChecked()
+
+        with open('settings.json', 'w') as file:
+            json.dump(data, file)
+
+        self.close_window()
+
+    def close_window(self):
+        self.close()
+
+    def connect_bot(self):
+        con = Connect(parent=self)
+        mw = qtmodern.windows.ModernWindow(con)
+        mw.move(200, 200)
+        mw.show()
+
+        con.exec()
+
+        if con.exit_ifo == "Готово":
+            bot.polling()
+
+
+class Task(QDialog):
     def __init__(self, key, parent=None):
         super().__init__(parent)
         uic.loadUi('ui/CustomDialog.ui', self)
@@ -103,13 +183,13 @@ class CustomDialog(QDialog):
 
     def save(self):
         with open('tasks.json') as file:
-            dictionary = json.load(file)
+            data = json.load(file)
 
         if bool(self.key):
             if bool(self.lineEdit_header_text.text()):
-                dictionary["tasks"][self.key][0] = self.lineEdit_header_text.text()
-                dictionary["tasks"][self.key][1] = self.textEdit_text.toPlainText()
-                dictionary["tasks"][self.key][2] = self.checkBox_completed.isChecked()
+                data["tasks"][self.key][0] = self.lineEdit_header_text.text()
+                data["tasks"][self.key][1] = self.textEdit_text.toPlainText()
+                data["tasks"][self.key][2] = self.checkBox_completed.isChecked()
 
         else:
             date, time = str(datetime.datetime.now()).split()
@@ -117,8 +197,8 @@ class CustomDialog(QDialog):
             date = ":".join(date.split("-")[::-1])
             self.key = f"{time};{date}"
 
-            dictionary["tasks"][self.key] = [self.lineEdit_header_text.text(), self.textEdit_text.toPlainText(),
-                                             self.checkBox_completed.isChecked()]
+            data["tasks"][self.key] = [self.lineEdit_header_text.text(), self.textEdit_text.toPlainText(),
+                                       self.checkBox_completed.isChecked()]
 
         # if self.checkBox_do_prompts.isChecked():
         selected_date = self.calendarWidget.selectedDate()
@@ -130,12 +210,12 @@ class CustomDialog(QDialog):
         time_2 = self.timeEdit_2.time()
         time_string_2 = time_2.toString("mm:hh")
 
-        dictionary["prompts"]["date"][self.key] = [time_string, date_string, self.tab.isEnabled()]
-        dictionary["prompts"]["every"][self.key] = [time_string_2, self.spinBox.value(), self.comboBox.currentText(),
-                                                    self.tab_2.isEnabled()]
+        data["prompts"]["date"][self.key] = [time_string, date_string, self.tab.isEnabled()]
+        data["prompts"]["every"][self.key] = [time_string_2, self.spinBox.value(), self.comboBox.currentText(),
+                                              self.tab_2.isEnabled()]
 
         with open('tasks.json', 'w') as file:
-            json.dump(dictionary, file)
+            json.dump(data, file)
 
         self.close_window()
 
@@ -147,7 +227,6 @@ class CustomDialog(QDialog):
             self.tabWidget.setEnabled(True)
             self.comboBox_choice.show()
 
-            print(self.comboBox_choice.currentIndex())
             self.tabWidget.setTabEnabled(self.comboBox_choice.currentIndex(), False)
 
         else:
@@ -183,6 +262,7 @@ class MyWidget(QMainWindow):
         self.btn_do_all_completed_task.clicked.connect(self.do_all_tasks_complited)
         self.btn_new_task.clicked.connect(self.new_task)
         self.btn_del_all_completed_task.clicked.connect(self.delite_all_complited_tasks)
+        self.btn_settings.clicked.connect(self.open_settings)
 
         self.vbox = QVBoxLayout()
 
@@ -290,7 +370,7 @@ class MyWidget(QMainWindow):
         key_1 = ":".join(key_1.split(":")[::-1])
         key = f"{key_1};{key_2}"
 
-        dlg = CustomDialog(key, parent=self)
+        dlg = Task(key, parent=self)
         mw = qtmodern.windows.ModernWindow(dlg)
         mw.move(200, 200)
         mw.show()
@@ -310,12 +390,12 @@ class MyWidget(QMainWindow):
         time = f"{time_1};{time_2}"
 
         with open('tasks.json') as file:
-            dictionary = json.load(file)
+            data = json.load(file)
 
-        dictionary["tasks"][time][2] = cb.isChecked()
+        data["tasks"][time][2] = cb.isChecked()
 
         with open('tasks.json', 'w') as file:
-            json.dump(dictionary, file)
+            json.dump(data, file)
 
         if cb.isChecked():
             group.setStyleSheet(
@@ -327,35 +407,35 @@ class MyWidget(QMainWindow):
 
     def do_all_tasks_complited(self):
         with open('tasks.json') as file:
-            dictionary = json.load(file)
+            data = json.load(file)
 
-        for key in dictionary["tasks"].keys():
-            dictionary["tasks"][key][2] = True
+        for key in data["tasks"].keys():
+            data["tasks"][key][2] = True
 
         with open('tasks.json', 'w') as file:
-            json.dump(dictionary, file)
+            json.dump(data, file)
 
         self.update_tasks()
 
     def delite_all_complited_tasks(self):
         with open('tasks.json') as file:
-            dictionary = json.load(file)
+            data = json.load(file)
 
-        tasks = dictionary["tasks"]
+        tasks = data["tasks"]
         tasks_copy = tasks.copy()
         for key in tasks_copy:
             if tasks[key][2]:
                 del tasks[key]
 
-        dictionary["tasks"] = tasks
+        data["tasks"] = tasks
 
         with open('tasks.json', 'w') as file:
-            json.dump(dictionary, file)
+            json.dump(data, file)
 
         self.update_tasks()
 
     def new_task(self):
-        dlg = CustomDialog("", parent=self)
+        dlg = Task("", parent=self)
         mw = qtmodern.windows.ModernWindow(dlg)
         mw.move(200, 200)
         mw.show()
@@ -363,19 +443,59 @@ class MyWidget(QMainWindow):
         dlg.exec()
         self.update_tasks()
 
+    def open_settings(self):
+
+        sett = Settings(parent=self)
+        mw = qtmodern.windows.ModernWindow(sett)
+        mw.move(200, 200)
+        mw.show()
+
+        sett.exec()
+
 
 def except_hook(cls, exception, traceback):
     sys.__excepthook__(cls, exception, traceback)
 
 
 if __name__ == '__main__':
+    with open('settings.json') as file:
+        data = json.load(file)
+
+    theme = data["theme"] == "dark"
+
+    bot = telebot.TeleBot(bot_key)
+
+
+    @bot.message_handler(content_types=["text"])
+    def get_message(message):
+        if message.text == Connect.key:
+            with open('settings.json') as file:
+                data = json.load(file)
+
+            data["telegram"]["id"] = f"{message.chat.id}"
+
+            with open('settings.json', 'w') as file:
+                json.dump(data, file)
+
+        try:
+            bot.stop_polling()
+        except Exception:
+            pass
+        print(0)
+
+
     app = QApplication(sys.argv)
     ex = MyWidget()
 
-    qtmodern.styles.dark(app)
+    if theme:
+        qtmodern.styles.dark(app)
+
+    else:
+        qtmodern.styles.light(app)
+
     mw = qtmodern.windows.ModernWindow(ex)
     mw.move(200, 200)
 
     mw.show()
     sys.excepthook = except_hook
-    sys.exit(app.exec_())
+    app.exec_()

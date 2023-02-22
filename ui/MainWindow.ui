@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>650</width>
-    <height>380</height>
+    <width>630</width>
+    <height>420</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>650</width>
-    <height>380</height>
+    <width>630</width>
+    <height>420</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>650</width>
-    <height>380</height>
+    <width>630</width>
+    <height>420</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -34,8 +34,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>371</width>
-      <height>361</height>
+      <width>351</width>
+      <height>401</height>
      </rect>
     </property>
     <property name="horizontalScrollBarPolicy">
@@ -52,8 +52,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>369</width>
-       <height>359</height>
+       <width>349</width>
+       <height>399</height>
       </rect>
      </property>
     </widget>
@@ -61,7 +61,7 @@
    <widget class="QComboBox" name="comboBox_sort">
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>490</x>
       <y>41</y>
       <width>131</width>
       <height>21</height>
@@ -99,7 +99,7 @@
    <widget class="QCheckBox" name="cb_reverse_sort">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>370</x>
       <y>70</y>
       <width>171</width>
       <height>21</height>
@@ -117,7 +117,7 @@
    <widget class="QLabel" name="label_sort_2">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>370</x>
       <y>40</y>
       <width>121</width>
       <height>21</height>
@@ -138,9 +138,9 @@
    <widget class="QLabel" name="label_sort">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>370</x>
       <y>10</y>
-      <width>131</width>
+      <width>251</width>
       <height>21</height>
      </rect>
     </property>
@@ -152,15 +152,18 @@
      </font>
     </property>
     <property name="text">
-     <string>Сортировка:</string>
+     <string>Сортировка</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_find">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>370</x>
       <y>110</y>
-      <width>131</width>
+      <width>251</width>
       <height>21</height>
      </rect>
     </property>
@@ -172,13 +175,16 @@
      </font>
     </property>
     <property name="text">
-     <string>Поиск:</string>
+     <string>Поиск</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_find">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>370</x>
       <y>140</y>
       <width>251</width>
       <height>21</height>
@@ -196,9 +202,9 @@
    <widget class="QPushButton" name="btn_clear_find">
     <property name="geometry">
      <rect>
-      <x>450</x>
+      <x>380</x>
       <y>170</y>
-      <width>131</width>
+      <width>231</width>
       <height>23</height>
      </rect>
     </property>
@@ -209,9 +215,9 @@
    <widget class="QLabel" name="label_tasks">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>370</x>
       <y>210</y>
-      <width>151</width>
+      <width>251</width>
       <height>21</height>
      </rect>
     </property>
@@ -223,13 +229,16 @@
      </font>
     </property>
     <property name="text">
-     <string>Задачи:</string>
+     <string>Задачи</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QCheckBox" name="cb_show_completed_task">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>370</x>
       <y>240</y>
       <width>191</width>
       <height>17</height>
@@ -250,9 +259,9 @@
    <widget class="QPushButton" name="btn_del_all_completed_task">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>380</x>
       <y>270</y>
-      <width>251</width>
+      <width>231</width>
       <height>23</height>
      </rect>
     </property>
@@ -268,9 +277,9 @@
    <widget class="QPushButton" name="btn_do_all_completed_task">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>380</x>
       <y>300</y>
-      <width>251</width>
+      <width>231</width>
       <height>23</height>
      </rect>
     </property>
@@ -286,19 +295,34 @@
    <widget class="QPushButton" name="btn_new_task">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>350</y>
+      <x>370</x>
+      <y>332</y>
       <width>251</width>
-      <height>23</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <pointsize>8</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="text">
      <string>Создать новую задачу</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_settings">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>390</y>
+      <width>231</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Настройки</string>
     </property>
    </widget>
   </widget>
