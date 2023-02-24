@@ -122,6 +122,7 @@ class Task(QDialog):
         self.checkBox_do_prompts.stateChanged.connect(self.update_prompts_widget)
         self.comboBox_choice.activated.connect(self.update_prompts_widget)
         self.comboBox.activated.connect(self.important_function)
+        self.comboBox.activated.connect(self.update_groupbox)
 
         if bool(self.key):
             with open('db/tasks.json') as file:
@@ -171,12 +172,6 @@ class Task(QDialog):
             elif prompt["every"][self.key][3]:
                 self.comboBox_choice.setCurrentIndex(0)
 
-
-
-
-
-
-
         else:
             self.label_date.setText("")
             self.timeEdit.setTime(QTime.currentTime().addSecs(600))
@@ -216,6 +211,15 @@ class Task(QDialog):
         data["prompts"]["every"][self.key] = [time_string_2, self.spinBox.value(), self.comboBox.currentText(),
                                               self.tab_2.isEnabled(), 1]
 
+        if self.comboBox.currentText() == "Недель":
+            data["prompts"]["every"][self.key].append([0 if self.checkBox.isChecked() else None,
+                                                       1 if self.checkBox_2.isChecked() else None,
+                                                       2 if self.checkBox_3.isChecked() else None,
+                                                       3 if self.checkBox_4.isChecked() else None,
+                                                       4 if self.checkBox_5.isChecked() else None,
+                                                       5 if self.checkBox_6.isChecked() else None,
+                                                       6 if self.checkBox_7.isChecked() else None])
+
         with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
 
@@ -238,6 +242,12 @@ class Task(QDialog):
             self.tabWidget.setTabEnabled(1, False)
 
             self.comboBox_choice.hide()
+
+    def update_groupbox(self):
+        if self.comboBox.currentText() == "Недель":
+            self.groupBox.setEnabled(True)
+        else:
+            self.groupBox.setEnabled(False)
 
     def important_function(self):
         if self.comboBox.currentIndex() < 2:
