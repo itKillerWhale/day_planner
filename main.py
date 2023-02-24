@@ -3,6 +3,7 @@ import json
 import datetime
 import random
 
+
 import qtmodern.styles
 import qtmodern.windows
 
@@ -13,7 +14,7 @@ from PyQt5 import uic, QtCore
 from PyQt5.QtCore import QTime, QDate
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QGroupBox, QVBoxLayout, QCheckBox, QWidget, \
-    QGridLayout, QDialog
+    QGridLayout, QDialog, QInputDialog
 
 
 class GroupBox(QGroupBox):
@@ -73,6 +74,7 @@ class Settings(QDialog):
         self.btn_ok.clicked.connect(self.save)
         self.btn_cancel.clicked.connect(self.close_window)
         self.btn_connect_bot.clicked.connect(self.connect_bot)
+        self.btn_tune.clicked.connect(self.tune)
 
         with open('db/settings.json') as file:
             data = json.load(file)
@@ -119,6 +121,8 @@ class Task(QDialog):
 
         self.btn_ok.clicked.connect(self.save)
         self.btn_cancel.clicked.connect(self.close_window)
+        self.btn_del.clicked.connect(self.delite_task)
+
         self.checkBox_do_prompts.stateChanged.connect(self.update_prompts_widget)
         self.comboBox_choice.activated.connect(self.update_prompts_widget)
         self.comboBox.activated.connect(self.important_function)
@@ -173,7 +177,6 @@ class Task(QDialog):
             self.checkBox_6.setChecked(bool(checked_list[5]))
             self.checkBox_7.setChecked(bool(checked_list[6]))
 
-
             if prompt["date"][self.key][2] and prompt["every"][self.key][3]:
                 self.comboBox_choice.setCurrentIndex(2)
 
@@ -186,6 +189,7 @@ class Task(QDialog):
         else:
             self.label_date.setText("")
             self.timeEdit.setTime(QTime.currentTime().addSecs(600))
+            self.btn_del.hide()
 
         self.update_groupbox()
         self.update_prompts_widget()
@@ -254,6 +258,25 @@ class Task(QDialog):
 
             self.comboBox_choice.hide()
 
+    def delite_task(self):
+        n = random.randint(1000, 9999)
+        input_dialog = QInputDialog()
+        name, ok_pressed = input_dialog.getText(self, "Подтверждение",
+                                        f"Вы точно хотите удалить эту задачу?\nДля подтверждения введите {n}")
+        if ok_pressed and name == str(n):
+            with open('db/tasks.json') as file:
+                data = json.load(file)
+
+            del data["tasks"][self.key]
+            del data["prompts"]["date"][self.key]
+            del data["prompts"]["every"][self.key]
+
+            with open('db/tasks.json', 'w') as file:
+                json.dump(data, file)
+
+            self.close_window()
+
+
     def update_groupbox(self):
         if self.comboBox.currentText() == "Недель":
             self.groupBox.setEnabled(True)
@@ -282,7 +305,8 @@ class MyWidget(QMainWindow):
         self.lineEdit_find.textChanged.connect(self.update_tasks)
 
         self.btn_clear_find.clicked.connect(self.clear_find_text)
-        self.btn_do_all_completed_task.clicked.connect(self.do_all_tasks_complited)
+        self.btn_do_all_completed_task.clicked.connect(self.do_all_tasks)
+        self.btn_do_all_not_completed_task.clicked.connect(self.do_all_tasks)
         self.btn_new_task.clicked.connect(self.new_task)
         self.btn_del_all_completed_task.clicked.connect(self.delite_all_complited_tasks)
         self.btn_settings.clicked.connect(self.open_settings)
@@ -428,12 +452,15 @@ class MyWidget(QMainWindow):
             group.setStyleSheet(
                 "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
 
-    def do_all_tasks_complited(self):
+    def do_all_tasks(self):
+        sender = self.sender()
+        print(sender.text())
+
         with open('db/tasks.json') as file:
             data = json.load(file)
 
         for key in data["tasks"].keys():
-            data["tasks"][key][2] = True
+            data["tasks"][key][2] = True if sender.text() == "Завершенно все" else False
 
         with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
@@ -441,25 +468,32 @@ class MyWidget(QMainWindow):
         self.update_tasks()
 
     def delite_all_complited_tasks(self):
-        with open('db/tasks.json') as file:
-            data = json.load(file)
+        n = random.randint(1000, 9999)
+        input_dialog = QInputDialog()
+        name, ok_pressed = input_dialog.getText(self, "Подтверждение",
+                                        f"Вы точно хотите удалить все завершённe задачи?\nДля подтверждения введите {n}")
+        if ok_pressed and name == str(n):
 
-        prompts = data["prompts"]
-        tasks = data["tasks"]
-        tasks_copy = tasks.copy()
-        for key in tasks_copy:
-            if tasks[key][2]:
-                del tasks[key]
-                del prompts["date"][key]
-                del prompts["every"][key]
 
-        data["tasks"] = tasks
-        data["prompts"] = prompts
+            with open('db/tasks.json') as file:
+                data = json.load(file)
 
-        with open('db/tasks.json', 'w') as file:
-            json.dump(data, file)
+            prompts = data["prompts"]
+            tasks = data["tasks"]
+            tasks_copy = tasks.copy()
+            for key in tasks_copy:
+                if tasks[key][2]:
+                    del tasks[key]
+                    del prompts["date"][key]
+                    del prompts["every"][key]
 
-        self.update_tasks()
+            data["tasks"] = tasks
+            data["prompts"] = prompts
+
+            with open('db/tasks.json', 'w') as file:
+                json.dump(data, file)
+
+            self.update_tasks()
 
     def new_task(self):
         dlg = Task("", parent=self)

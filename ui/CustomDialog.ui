@@ -144,7 +144,7 @@
     </size>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -452,7 +452,7 @@
     <rect>
      <x>310</x>
      <y>540</y>
-     <width>75</width>
+     <width>71</width>
      <height>23</height>
     </rect>
    </property>
@@ -465,7 +465,7 @@
     <rect>
      <x>10</x>
      <y>540</y>
-     <width>75</width>
+     <width>71</width>
      <height>23</height>
     </rect>
    </property>
@@ -497,6 +497,19 @@
      <string>Оба варианта</string>
     </property>
    </item>
+  </widget>
+  <widget class="QPushButton" name="btn_del">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>540</y>
+     <width>111</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Удалить задачу</string>
+   </property>
   </widget>
  </widget>
  <resources/>

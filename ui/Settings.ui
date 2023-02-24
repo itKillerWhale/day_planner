@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>315</width>
+    <width>310</width>
     <height>150</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>315</width>
+    <width>310</width>
     <height>150</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>315</width>
+    <width>310</width>
     <height>150</height>
    </size>
   </property>
@@ -97,7 +97,7 @@
     <rect>
      <x>230</x>
      <y>120</y>
-     <width>75</width>
+     <width>71</width>
      <height>23</height>
     </rect>
    </property>
@@ -113,6 +113,9 @@
      <width>71</width>
      <height>23</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>Отмена</string>

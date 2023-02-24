@@ -104,4 +104,8 @@ def callback_query(call):
                               message_id=call.message.message_id, parse_mode="html")
 
 
-bot.polling()
+while True:
+    try:
+        bot.polling()
+    except Exception:
+        pass
