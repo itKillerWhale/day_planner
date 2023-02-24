@@ -2,10 +2,7 @@ import telebot
 import json
 
 from bot_key import bot_key
-
 bot = telebot.TeleBot(bot_key)
-
-
 def send(key):
     with open('../db/settings.json') as file:
         settings = json.load(file)

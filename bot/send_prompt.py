@@ -3,44 +3,21 @@ import datetime
 import telebot
 import json
 
-from bot.bot_key import bot_key
-
-bot = telebot.TeleBot(bot_key)
-
-def send(key):
-    with open('db/settings.json') as file:
-        settings = json.load(file)
-
-    with open('db/tasks.json') as file:
-        data = json.load(file)
-    task = data["tasks"][key]
-
-    time_1, time_2 = tuple(key.split(";"))
-    time_2 = time_2.replace(":", ".")
-    time_1 = ":".join(time_1.split(":")[:0:-1])
-    time = " / ".join([time_1, time_2])
-
-    text = f"<b>{task[0]}</b>\n\n{task[1]}\n\n{time}\n<em>{'Завершено' if task[2] else 'Не завершено'}</em>"
-
-    bot.send_message(settings["telegram"]["id"], text, parse_mode="html")
-
+from send import send
 
 while True:
-    with open('db/settings.json') as file:
+    with open('../db/settings.json') as file:
         settings = json.load(file)
 
-    print(settings["telegram"]["send"])
     if settings["telegram"]["send"]:
 
-        with open('db/tasks.json') as file:
+        with open('../db/tasks.json') as file:
             tasks = json.load(file)
 
         date = tasks["prompts"]["date"]
         every = tasks["prompts"]["every"]
 
         for key in date.keys():
-            print(key, tasks["tasks"][key][0])
-            print("date", date[key][2])
             if date[key][2]:
                 prompt_time, prompt_date = date[key][0], date[key][1]
 
@@ -50,7 +27,6 @@ while True:
                 if now_date == prompt_date and now_time == prompt_time:
                     send(key)
 
-            print("every", every[key][3])
             if every[key][3]:
                 if every[key][2] == "Минут":
                     now = datetime.datetime.now()
@@ -84,7 +60,10 @@ while True:
 
                 elif every[key][2] == "Недель":
                     now = datetime.datetime.now()
-                    if now.strftime("%M:%H") == every[key][0] and str(now.strftime("%w")) in every[key][5]:
+                    print(now.strftime("%M:%H") == every[key][0])
+                    print(str(now.strftime("%w")), every[key][5])
+                    if now.strftime("%M:%H") == every[key][0] and str(now.strftime("%w")) in list(
+                            map(str, every[key][5])):
                         send(key)
 
                 elif every[key][2] == "Месяцев":

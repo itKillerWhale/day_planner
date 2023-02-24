@@ -163,6 +163,17 @@ class Task(QDialog):
 
             self.tabWidget.setTabEnabled(1, True)
 
+            checked_list = prompt["every"][self.key][5]
+            print(checked_list[0])
+            self.checkBox.setChecked(True if checked_list[0] == 0 else False)
+            self.checkBox_2.setChecked(bool(checked_list[1]))
+            self.checkBox_3.setChecked(bool(checked_list[2]))
+            self.checkBox_4.setChecked(bool(checked_list[3]))
+            self.checkBox_5.setChecked(bool(checked_list[4]))
+            self.checkBox_6.setChecked(bool(checked_list[5]))
+            self.checkBox_7.setChecked(bool(checked_list[6]))
+
+
             if prompt["date"][self.key][2] and prompt["every"][self.key][3]:
                 self.comboBox_choice.setCurrentIndex(2)
 
@@ -176,6 +187,7 @@ class Task(QDialog):
             self.label_date.setText("")
             self.timeEdit.setTime(QTime.currentTime().addSecs(600))
 
+        self.update_groupbox()
         self.update_prompts_widget()
 
     def save(self):
@@ -211,14 +223,13 @@ class Task(QDialog):
         data["prompts"]["every"][self.key] = [time_string_2, self.spinBox.value(), self.comboBox.currentText(),
                                               self.tab_2.isEnabled(), 1]
 
-        if self.comboBox.currentText() == "Недель":
-            data["prompts"]["every"][self.key].append([0 if self.checkBox.isChecked() else None,
-                                                       1 if self.checkBox_2.isChecked() else None,
-                                                       2 if self.checkBox_3.isChecked() else None,
-                                                       3 if self.checkBox_4.isChecked() else None,
-                                                       4 if self.checkBox_5.isChecked() else None,
-                                                       5 if self.checkBox_6.isChecked() else None,
-                                                       6 if self.checkBox_7.isChecked() else None])
+        data["prompts"]["every"][self.key].append([0 if self.checkBox.isChecked() else None,
+                                                   1 if self.checkBox_2.isChecked() else None,
+                                                   2 if self.checkBox_3.isChecked() else None,
+                                                   3 if self.checkBox_4.isChecked() else None,
+                                                   4 if self.checkBox_5.isChecked() else None,
+                                                   5 if self.checkBox_6.isChecked() else None,
+                                                   6 if self.checkBox_7.isChecked() else None])
 
         with open('db/tasks.json', 'w') as file:
             json.dump(data, file)

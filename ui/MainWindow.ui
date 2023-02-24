@@ -82,11 +82,6 @@
     </item>
     <item>
      <property name="text">
-      <string>Дате напоминания</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
       <string>Заголовку</string>
      </property>
     </item>
