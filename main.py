@@ -60,7 +60,6 @@ class Connect(QDialog):
         self.lineEdit_key.setText(Connect.key)
 
     def close_window(self):
-        print(self.sender().text())
         self.exit_ifo = self.sender().text()
         self.close()
 
@@ -74,7 +73,6 @@ class Settings(QDialog):
         self.btn_ok.clicked.connect(self.save)
         self.btn_cancel.clicked.connect(self.close_window)
         self.btn_connect_bot.clicked.connect(self.connect_bot)
-        self.btn_tune.clicked.connect(self.tune)
 
         with open('db/settings.json') as file:
             data = json.load(file)
@@ -131,7 +129,6 @@ class Task(QDialog):
         if bool(self.key):
             with open('db/tasks.json') as file:
                 data = json.load(file)
-            print(data["tasks"].keys())
             task = data["tasks"][self.key]
             prompt = data["prompts"]
 
@@ -168,7 +165,6 @@ class Task(QDialog):
             self.tabWidget.setTabEnabled(1, True)
 
             checked_list = prompt["every"][self.key][5]
-            print(checked_list[0])
             self.checkBox.setChecked(True if checked_list[0] == 0 else False)
             self.checkBox_2.setChecked(bool(checked_list[1]))
             self.checkBox_3.setChecked(bool(checked_list[2]))
@@ -294,6 +290,7 @@ class Task(QDialog):
 
 
 class MyWidget(QMainWindow):
+    old_data = {}
     def __init__(self):
         super().__init__()
         uic.loadUi('ui/MainWindow.ui', self)
@@ -306,7 +303,6 @@ class MyWidget(QMainWindow):
 
         self.btn_clear_find.clicked.connect(self.clear_find_text)
         self.btn_do_all_completed_task.clicked.connect(self.do_all_tasks)
-        self.btn_do_all_not_completed_task.clicked.connect(self.do_all_tasks)
         self.btn_new_task.clicked.connect(self.new_task)
         self.btn_del_all_completed_task.clicked.connect(self.delite_all_complited_tasks)
         self.btn_settings.clicked.connect(self.open_settings)
@@ -454,16 +450,19 @@ class MyWidget(QMainWindow):
 
     def do_all_tasks(self):
         sender = self.sender()
-        print(sender.text())
 
         with open('db/tasks.json') as file:
             data = json.load(file)
 
+        MyWidget.old_data = data.copy()
+
         for key in data["tasks"].keys():
-            data["tasks"][key][2] = True if sender.text() == "Завершенно все" else False
+            data["tasks"][key][2] = True
 
         with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
+
+        sender.setText("Отменить")
 
         self.update_tasks()
 
@@ -542,7 +541,6 @@ if __name__ == '__main__':
             bot.stop_polling()
         except Exception:
             pass
-        print(0)
 
 
     app = QApplication(sys.argv)

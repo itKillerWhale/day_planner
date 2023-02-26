@@ -274,7 +274,7 @@
      <rect>
       <x>390</x>
       <y>270</y>
-      <width>111</width>
+      <width>231</width>
       <height>23</height>
      </rect>
     </property>
@@ -284,7 +284,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Завершенно все</string>
+     <string>Завершить все задачи</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_new_task">
@@ -318,24 +318,6 @@
     </property>
     <property name="text">
      <string>Настройки</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_do_all_not_completed_task">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>270</y>
-      <width>111</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>8</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Не завершенно все</string>
     </property>
    </widget>
   </widget>
