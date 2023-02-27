@@ -3,7 +3,6 @@ import json
 import datetime
 import random
 
-
 import qtmodern.styles
 import qtmodern.windows
 
@@ -112,7 +111,7 @@ class Settings(QDialog):
 class Task(QDialog):
     def __init__(self, key, parent=None):
         super().__init__(parent)
-        uic.loadUi('ui/CustomDialog.ui', self)
+        uic.loadUi('ui/Task.ui', self)
         self.setWindowTitle("Задача")
 
         self.key = key
@@ -258,7 +257,7 @@ class Task(QDialog):
         n = random.randint(1000, 9999)
         input_dialog = QInputDialog()
         name, ok_pressed = input_dialog.getText(self, "Подтверждение",
-                                        f"Вы точно хотите удалить эту задачу?\nДля подтверждения введите {n}")
+                                                f"Вы точно хотите удалить эту задачу?\nДля подтверждения введите {n}")
         if ok_pressed and name == str(n):
             with open('db/tasks.json') as file:
                 data = json.load(file)
@@ -271,7 +270,6 @@ class Task(QDialog):
                 json.dump(data, file)
 
             self.close_window()
-
 
     def update_groupbox(self):
         if self.comboBox.currentText() == "Недель":
@@ -289,8 +287,9 @@ class Task(QDialog):
         self.close()
 
 
-class MyWidget(QMainWindow):
+class MainWindow(QMainWindow):
     old_data = {}
+
     def __init__(self):
         super().__init__()
         uic.loadUi('ui/MainWindow.ui', self)
@@ -302,7 +301,7 @@ class MyWidget(QMainWindow):
         self.lineEdit_find.textChanged.connect(self.update_tasks)
 
         self.btn_clear_find.clicked.connect(self.clear_find_text)
-        self.btn_do_all_completed_task.clicked.connect(self.do_all_tasks)
+        self.btn_do_all_completed_task.clicked.connect(self.do_all_tasks_completed)
         self.btn_new_task.clicked.connect(self.new_task)
         self.btn_del_all_completed_task.clicked.connect(self.delite_all_complited_tasks)
         self.btn_settings.clicked.connect(self.open_settings)
@@ -448,13 +447,10 @@ class MyWidget(QMainWindow):
             group.setStyleSheet(
                 "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
 
-    def do_all_tasks(self):
-        sender = self.sender()
+    def do_all_tasks_completed(self):
 
         with open('db/tasks.json') as file:
             data = json.load(file)
-
-        MyWidget.old_data = data.copy()
 
         for key in data["tasks"].keys():
             data["tasks"][key][2] = True
@@ -462,17 +458,14 @@ class MyWidget(QMainWindow):
         with open('db/tasks.json', 'w') as file:
             json.dump(data, file)
 
-        sender.setText("Отменить")
-
         self.update_tasks()
 
     def delite_all_complited_tasks(self):
         n = random.randint(1000, 9999)
         input_dialog = QInputDialog()
         name, ok_pressed = input_dialog.getText(self, "Подтверждение",
-                                        f"Вы точно хотите удалить все завершённe задачи?\nДля подтверждения введите {n}")
+                                                f"Вы точно хотите удалить все завершённe задачи?\nДля подтверждения введите {n}")
         if ok_pressed and name == str(n):
-
 
             with open('db/tasks.json') as file:
                 data = json.load(file)
@@ -544,7 +537,7 @@ if __name__ == '__main__':
 
 
     app = QApplication(sys.argv)
-    ex = MyWidget()
+    ex = MainWindow()
 
     if theme:
         qtmodern.styles.dark(app)
