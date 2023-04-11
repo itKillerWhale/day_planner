@@ -6,14 +6,13 @@ import random
 import qtmodern.styles
 import qtmodern.windows
 
-import telebot
 from bot.bot_key import bot_key
 
 from PyQt5 import uic, QtCore
-from PyQt5.QtCore import QTime, QDate
+from PyQt5.QtCore import QTime, QDate, QPropertyAnimation, QEasingCurve
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QGroupBox, QVBoxLayout, QCheckBox, QWidget, \
-    QGridLayout, QDialog, QInputDialog
+    QGridLayout, QDialog, QInputDialog, QSizeGrip
 
 
 class GroupBox(QGroupBox):
@@ -81,6 +80,7 @@ class Settings(QDialog):
         self.label_send_2.setText(
             "Бот подключён" if bool(data["telegram"]["id"]) else "(Для получения напоминаний подключите бота)")
 
+
     def save(self):
         with open('db/settings.json') as file:
             data = json.load(file)
@@ -90,6 +90,14 @@ class Settings(QDialog):
 
         with open('db/settings.json', 'w') as file:
             json.dump(data, file)
+
+        theme = data["theme"] == "dark"
+
+        if theme:
+            qtmodern.styles.dark(app)
+
+        else:
+            qtmodern.styles.light(app)
 
         self.close_window()
 
@@ -294,17 +302,23 @@ class MainWindow(QMainWindow):
         super().__init__()
         uic.loadUi('ui/MainWindow.ui', self)
         self.setWindowTitle("Планировщик задач на день")
+        QSizeGrip(self.size_grip)
 
         self.comboBox_sort.activated.connect(self.update_tasks)
         self.cb_reverse_sort.stateChanged.connect(self.update_tasks)
-        self.cb_show_completed_task.stateChanged.connect(self.update_tasks)
+        # self.cb_show_completed_task.stateChanged.connect(self.update_tasks)
         self.lineEdit_find.textChanged.connect(self.update_tasks)
 
-        self.btn_clear_find.clicked.connect(self.clear_find_text)
-        self.btn_do_all_completed_task.clicked.connect(self.do_all_tasks_completed)
         self.btn_new_task.clicked.connect(self.new_task)
         self.btn_del_all_completed_task.clicked.connect(self.delite_all_complited_tasks)
         self.btn_settings.clicked.connect(self.open_settings)
+
+        self.menu_animation = QPropertyAnimation(self.right_menu, b'maximumWidth')
+        self.menu_animation.setDuration(350)
+        self.menu_animation.setEasingCurve(QEasingCurve.InOutCubic)
+
+        self.menu_btn.clicked.connect(self.slide_menu)
+        self.menu_visible = False
 
         self.vbox = QVBoxLayout()
 
@@ -317,8 +331,8 @@ class MainWindow(QMainWindow):
         tasks_key_list = tasks.keys()
 
         # Филтр
-        if not self.cb_show_completed_task.isChecked():
-            tasks_key_list = list(filter(lambda x: not tasks[x][2], tasks_key_list))
+        # if not self.cb_show_completed_task.isChecked():
+        #     tasks_key_list = list(filter(lambda x: not tasks[x][2], tasks_key_list))
 
         # Поиск
         search_text = self.lineEdit_find.text().lower()
@@ -420,9 +434,6 @@ class MainWindow(QMainWindow):
         dlg.exec()
         self.update_tasks()
 
-    def clear_find_text(self):
-        self.lineEdit_find.setText("")
-
     def change_completed(self):
         cb = self.sender()
         group = cb.parent()
@@ -447,18 +458,17 @@ class MainWindow(QMainWindow):
             group.setStyleSheet(
                 "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
 
-    def do_all_tasks_completed(self):
-
-        with open('db/tasks.json') as file:
-            data = json.load(file)
-
-        for key in data["tasks"].keys():
-            data["tasks"][key][2] = True
-
-        with open('db/tasks.json', 'w') as file:
-            json.dump(data, file)
-
-        self.update_tasks()
+    def slide_menu(self):
+        if self.menu_visible:
+            self.menu_animation.setStartValue(250)
+            self.menu_animation.setEndValue(40)
+            self.menu_animation.start()
+            self.menu_visible = False
+        else:
+            self.menu_animation.setStartValue(40)
+            self.menu_animation.setEndValue(250)
+            self.menu_animation.start()
+            self.menu_visible = True
 
     def delite_all_complited_tasks(self):
         n = random.randint(1000, 9999)
@@ -514,30 +524,30 @@ if __name__ == '__main__':
     with open('db/settings.json') as file:
         data = json.load(file)
 
-    theme = data["theme"] == "dark"
-
-    bot = telebot.TeleBot(bot_key)
-
-
-    @bot.message_handler(content_types=["text"])
-    def get_message(message):
-        if message.text == Connect.key:
-            with open('db/settings.json') as file:
-                data = json.load(file)
-
-            data["telegram"]["id"] = f"{message.chat.id}"
-
-            with open('db/settings.json', 'w') as file:
-                json.dump(data, file)
-
-        try:
-            bot.stop_polling()
-        except Exception:
-            pass
+    # bot = telebot.TeleBot(bot_key)
+    #
+    #
+    # @bot.message_handler(content_types=["text"])
+    # def get_message(message):
+    #     if message.text == Connect.key:
+    #         with open('db/settings.json') as file:
+    #             data = json.load(file)
+    #
+    #         data["telegram"]["id"] = f"{message.chat.id}"
+    #
+    #         with open('db/settings.json', 'w') as file:
+    #             json.dump(data, file)
+    #
+    #     try:
+    #         bot.stop_polling()
+    #     except Exception:
+    #         pass
 
 
     app = QApplication(sys.argv)
     ex = MainWindow()
+
+    theme = data["theme"] == "dark"
 
     if theme:
         qtmodern.styles.dark(app)
