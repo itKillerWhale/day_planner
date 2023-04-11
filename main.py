@@ -21,7 +21,6 @@ class GroupBox(QGroupBox):
     def __init__(self, title):
         super(GroupBox, self).__init__()
         self.title = title
-        self.setTitle(self.title)
 
     def mousePressEvent(self, event):
         child = self.childAt(event.pos())
@@ -379,8 +378,7 @@ class MainWindow(QMainWindow):
                     "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
             Group.setObjectName(f'Задача {k}')
             Group.clicked.connect(self.onGroupClick)
-            Group.setFixedHeight(100)
-            Group.setFixedWidth(330)
+            Group.setFixedHeight(120)
             Layout = QGridLayout()
             Group.setLayout(Layout)
 
