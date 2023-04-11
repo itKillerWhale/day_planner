@@ -318,6 +318,7 @@ class MainWindow(QMainWindow):
 
         self.menu_btn.clicked.connect(self.slide_menu)
         self.menu_visible = False
+        self.delete_borders()
 
         self.vbox = QVBoxLayout()
 
@@ -415,6 +416,10 @@ class MainWindow(QMainWindow):
             Layout.addWidget(Item4, 2, 1)
 
             scrollLayout.addWidget(Group)
+
+    def delete_borders(self):
+        self.size_grip.setStyleSheet('border: none;')
+        self.frame_3.setStyleSheet('QFrame{border: none;}')
 
     def onGroupClick(self, title, obj):
         group = self.scrollArea.findChild(QGroupBox, title)
