@@ -2,6 +2,7 @@ import sys
 import json
 import datetime
 import random
+import sqlite3
 
 import qtmodern.styles
 import qtmodern.windows
@@ -78,7 +79,6 @@ class Settings(QDialog):
         self.checkBox_send.setChecked(data["telegram"]["send"])
         self.label_send_2.setText(
             "Бот подключён" if bool(data["telegram"]["id"]) else "(Для получения напоминаний подключите бота)")
-
 
     def save(self):
         with open('db/settings.json') as file:
@@ -296,6 +296,8 @@ class Task(QDialog):
 
 class MainWindow(QMainWindow):
     old_data = {}
+    con = sqlite3.connect("db/data.db")
+    cur = con.cursor()
 
     def __init__(self):
         super().__init__()
@@ -325,37 +327,66 @@ class MainWindow(QMainWindow):
         self.update_tasks()
 
     def update_tasks(self):
-        with open('db/tasks.json') as file:
-            data = json.load(file)
-        tasks = data["tasks"]
-        tasks_key_list = tasks.keys()
+        request = ""
 
-        # Филтр
-        # if not self.cb_show_completed_task.isChecked():
-        #     tasks_key_list = list(filter(lambda x: not tasks[x][2], tasks_key_list))
-
-        # Поиск
         search_text = self.lineEdit_find.text().lower()
+        print(search_text, f"'%{search_text}%'")
         if bool(search_text):
-            tasks_key_list = list(
-                filter(lambda x: search_text in tasks[x][0].lower() or search_text in tasks[x][1].lower(),
-                       tasks_key_list))
+            request += f"WHERE header LIKE '%{search_text}%' OR text LIKE '%{search_text}%' " \
+                       f"OR header LIKE '%{search_text.upper()}%' OR text LIKE '%{search_text.upper()}%' " \
+                       f"OR header LIKE '%{search_text.capitalize()}%' OR text LIKE '%{search_text.capitalize()}%'"
 
-        # Сортировка
+        tasks = MainWindow.cur.execute(f"""SELECT * FROM tasks {request}""").fetchall()
+        tasks = list(map(lambda x: (x[0], x[1], x[2], x[3] == "Flase", x[4]), tasks))
+
+        print(tasks)
+
         comboBox_text = self.comboBox_sort.currentText()
         do_revers = self.cb_reverse_sort.isChecked()
 
         if comboBox_text == "Дате создания":
-            tasks_key_list = sorted(tasks_key_list, key=lambda x: x[::-1], reverse=not do_revers)
+            tasks = sorted(tasks, key=lambda x: (x[-1].split("/")[0][::-1], x[-1].split("/")[1]), reverse=not do_revers)
 
         elif comboBox_text == "Дате напоминания":
             pass
 
         elif comboBox_text == "Заголовку":
-            tasks_key_list = sorted(tasks_key_list, key=lambda x: tasks[x][0].lower(), reverse=do_revers)
+            tasks = sorted(tasks, key=lambda x: x[1], reverse=do_revers)
 
         else:
-            tasks_key_list = sorted(tasks_key_list, key=lambda x: tasks[x][1].lower(), reverse=do_revers)
+            tasks = sorted(tasks, key=lambda x: x[2], reverse=do_revers)
+
+        # with open('db/tasks.json') as file:
+        #     data = json.load(file)
+        # tasks = data["tasks"]
+        # tasks_key_list = tasks.keys()
+        #
+        # # Филтр
+        # # if not self.cb_show_completed_task.isChecked():
+        # #     tasks_key_list = list(filter(lambda x: not tasks[x][2], tasks_key_list))
+        #
+        # # Поиск
+        # search_text = self.lineEdit_find.text().lower()
+        # if bool(search_text):
+        #     tasks_key_list = list(
+        #         filter(lambda x: search_text in tasks[x][0].lower() or search_text in tasks[x][1].lower(),
+        #                tasks_key_list))
+        #
+        # # Сортировка
+        # comboBox_text = self.comboBox_sort.currentText()
+        # do_revers = self.cb_reverse_sort.isChecked()
+        #
+        # if comboBox_text == "Дате создания":
+        #     tasks_key_list = sorted(tasks_key_list, key=lambda x: x[::-1], reverse=not do_revers)
+        #
+        # elif comboBox_text == "Дате напоминания":
+        #     pass
+        #
+        # elif comboBox_text == "Заголовку":
+        #     tasks_key_list = sorted(tasks_key_list, key=lambda x: tasks[x][0].lower(), reverse=do_revers)
+        #
+        # else:
+        #     tasks_key_list = sorted(tasks_key_list, key=lambda x: tasks[x][1].lower(), reverse=do_revers)
 
         # Добавление задач в ScrollArea
         scrollLayout = QVBoxLayout()
@@ -366,54 +397,53 @@ class MainWindow(QMainWindow):
         scrollW.setLayout(scrollLayout)
         scrollLayout.setAlignment(QtCore.Qt.AlignTop)
 
-        k = 0
-        for key in tasks_key_list:
-            k += 1
-            Group = GroupBox(f'Задача {k}')
+        for task in tasks:
+            Group = GroupBox('')
 
-            if tasks[key][2]:
+            if task[3]:
                 Group.setStyleSheet(
                     "QGroupBox{ background-color: #696969; border: 2px soild gray; border-radius: 3px; magrin-top: 10px}")
             else:
                 Group.setStyleSheet(
                     "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
-            Group.setObjectName(f'Задача {k}')
+            Group.setObjectName(f'Задача_{task[0]}')
             Group.clicked.connect(self.onGroupClick)
             Group.setFixedHeight(120)
             Layout = QGridLayout()
             Group.setLayout(Layout)
 
-            Item1_text = tasks[key][0].replace("\n", " ")
-            if len(Item1_text) > 18:
-                Item1_text = Item1_text[:18] + "..."
-            Item1 = QLabel(Item1_text, objectName="Item1")
-            Item1.setFixedHeight(21)
-            Item1.setFont(QFont("MS Shell Dlg 2", 11, QFont.Bold))
+            Header_text = task[1].replace("\n", " ")
+            if len(Header_text) > 18:
+                Header_text = Header_text[:18] + "..."
+            Header = QLabel(Header_text, objectName=f"Header_{task[0]}")
+            Header.setFixedHeight(21)
+            Header.setFont(QFont("MS Shell Dlg 2", 11, QFont.Bold))
 
-            Item2_text = tasks[key][1].replace("\n", " ")
-            if len(Item2_text) > 28:
-                Item2_text = Item2_text[:28] + "..."
-            Item2 = QLabel(Item2_text, objectName="Item2")
-            Item2.setFixedHeight(21)
-            Item2.setFont(QFont("MS Shell Dlg 2", 8))
+            Text_text = task[2].replace("\n", " ")
+            if len(Text_text) > 28:
+                Text_text = Text_text[:28] + "..."
+            Text = QLabel(Text_text, objectName=f"Text_{task[0]}")
+            Text.setFixedHeight(21)
+            Text.setFont(QFont("MS Shell Dlg 2", 8))
 
-            Item3 = QCheckBox("Завершено", objectName="Item3")
-            Item3.setFixedHeight(21)
-            Item3.setFont(QFont("MS Shell Dlg 2", 8))
-            Item3.setChecked(tasks[key][2])
-            Item3.stateChanged.connect(self.change_completed)
+            Completed_cb = QCheckBox("Завершено", objectName=f"Completed_{task[0]}")
+            Completed_cb.setFixedHeight(21)
+            Completed_cb.setFont(QFont("MS Shell Dlg 2", 8))
+            Completed_cb.setChecked(task[3])
+            Completed_cb.stateChanged.connect(self.clicke_completed_cb)
 
-            time_1, time_2 = tuple(key.split(";"))
-            time_1 = ":".join(time_1.split(":")[::-1])
-            Item4 = QLabel(" ".join([time_2, time_1]), objectName="Item4")
-            Item4.setFixedHeight(21)
-            Item4.setFixedWidth(110)
-            Item4.setFont(QFont("MS Shell Dlg 2", 8))
+            # time_1, time_2 = tuple(key.split(";"))
+            # time_1 = ":".join(time_1.split(":")[::-1])
+            # Item4 = QLabel(" ".join([time_2, time_1]), objectName="Item4")
+            Date_Time = QLabel(task[4], objectName=f"Date/Time_{task[0]}")
+            Date_Time.setFixedHeight(21)
+            Date_Time.setFixedWidth(110)
+            Date_Time.setFont(QFont("MS Shell Dlg 2", 8))
 
-            Layout.addWidget(Item1, 0, 0)
-            Layout.addWidget(Item2, 1, 0)
-            Layout.addWidget(Item3, 2, 0)
-            Layout.addWidget(Item4, 2, 1)
+            Layout.addWidget(Header, 0, 0)
+            Layout.addWidget(Text, 1, 0)
+            Layout.addWidget(Completed_cb, 2, 0)
+            Layout.addWidget(Date_Time, 2, 1)
 
             scrollLayout.addWidget(Group)
 
@@ -422,36 +452,25 @@ class MainWindow(QMainWindow):
         self.frame_3.setStyleSheet('QFrame{border: none;}')
 
     def onGroupClick(self, title, obj):
-        group = self.scrollArea.findChild(QGroupBox, title)
+        id_task = int(obj.objectName().split("_")[-1])
 
-        key = group.findChild(QLabel, "Item4").text()
-        key_2, key_1 = key.split()
-        key_1 = ":".join(key_1.split(":")[::-1])
-        key = f"{key_1};{key_2}"
+        # dlg = Task(key, parent=self)
+        # mw = qtmodern.windows.ModernWindow(dlg)
+        # mw.move(200, 200)
+        # mw.show()
+        #
+        # dlg.exec()
+        # self.update_tasks()
 
-        dlg = Task(key, parent=self)
-        mw = qtmodern.windows.ModernWindow(dlg)
-        mw.move(200, 200)
-        mw.show()
-
-        dlg.exec()
-        self.update_tasks()
-
-    def change_completed(self):
+    def clicke_completed_cb(self):
         cb = self.sender()
         group = cb.parent()
-        time = group.findChild(QLabel, "Item4").text()
-        time_2, time_1 = time.split()
-        time_1 = ":".join(time_1.split(":")[::-1])
-        time = f"{time_1};{time_2}"
 
-        with open('db/tasks.json') as file:
-            data = json.load(file)
+        id_task = int(group.objectName().split("_")[-1])
 
-        data["tasks"][time][2] = cb.isChecked()
-
-        with open('db/tasks.json', 'w') as file:
-            json.dump(data, file)
+        MainWindow.cur.execute(f"""UPDATE tasks 
+                                SET completed = {cb.isChecked()} 
+                                WHERE id == {id_task}""")
 
         if cb.isChecked():
             group.setStyleSheet(
@@ -477,26 +496,11 @@ class MainWindow(QMainWindow):
         n = random.randint(1000, 9999)
         input_dialog = QInputDialog()
         name, ok_pressed = input_dialog.getText(self, "Подтверждение",
-                                                f"Вы точно хотите удалить все завершённe задачи?\nДля подтверждения введите {n}")
+                                                f"Вы точно хотите удалить все завершённe задачи?"
+                                                f"\nДля подтверждения введите {n}")
+
         if ok_pressed and name == str(n):
-
-            with open('db/tasks.json') as file:
-                data = json.load(file)
-
-            prompts = data["prompts"]
-            tasks = data["tasks"]
-            tasks_copy = tasks.copy()
-            for key in tasks_copy:
-                if tasks[key][2]:
-                    del tasks[key]
-                    del prompts["date"][key]
-                    del prompts["every"][key]
-
-            data["tasks"] = tasks
-            data["prompts"] = prompts
-
-            with open('db/tasks.json', 'w') as file:
-                json.dump(data, file)
+            MainWindow.cur.execute(f"""DELETE FROM tasks WHERE completed == 'True'""").fetchall()
 
             self.update_tasks()
 
@@ -545,7 +549,6 @@ if __name__ == '__main__':
     #         bot.stop_polling()
     #     except Exception:
     #         pass
-
 
     app = QApplication(sys.argv)
     ex = MainWindow()
