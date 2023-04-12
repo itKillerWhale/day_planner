@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>640</width>
-    <height>420</height>
+    <height>445</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -63,20 +63,129 @@
        <property name="bottomMargin">
         <number>2</number>
        </property>
-       <item row="0" column="0">
-        <widget class="QFrame" name="tasks_frame">
+       <item row="1" column="0">
+        <widget class="QFrame" name="create_task_menu">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
          </property>
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="0" colspan="4">
-           <widget class="QLineEdit" name="lineEdit_find">
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="2">
+           <widget class="QCheckBox" name="checkBox_do_prompts">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Напомнить</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QCheckBox" name="checkBox_completed">
+            <property name="text">
+             <string>Завершено</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="7">
+           <widget class="QFrame" name="frame">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="spacing">
+              <number>4</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="btn_del">
+               <property name="text">
+                <string>Удалить задачу</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_cancel">
+               <property name="text">
+                <string>Отмена</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_ok">
+               <property name="text">
+                <string>Готово</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QComboBox" name="comboBox_choice">
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <item>
+             <property name="text">
+              <string>Каждые</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>В день/время</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Оба варианта</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="3" column="0" rowspan="2" colspan="2">
+           <widget class="QTextEdit" name="textEdit_text"/>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLineEdit" name="lineEdit_header_text">
             <property name="font">
              <font>
               <pointsize>11</pointsize>
+              <bold>true</bold>
              </font>
             </property>
             <property name="text">
@@ -84,6 +193,338 @@
             </property>
            </widget>
           </item>
+          <item row="4" column="4">
+           <widget class="QLabel" name="label_date">
+            <property name="font">
+             <font>
+              <kerning>true</kerning>
+             </font>
+            </property>
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2" colspan="5">
+           <widget class="QTabWidget" name="tabWidget">
+            <property name="minimumSize">
+             <size>
+              <width>380</width>
+              <height>290</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>9999</width>
+              <height>9999</height>
+             </size>
+            </property>
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="tab">
+             <attribute name="title">
+              <string>В день/время</string>
+             </attribute>
+             <layout class="QGridLayout" name="gridLayout_6">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="font">
+                 <font>
+                  <pointsize>11</pointsize>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Напомнить о задаче в день/время</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignHCenter|Qt::AlignTop</set>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCalendarWidget" name="calendarWidget"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QTimeEdit" name="timeEdit"/>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_2">
+             <attribute name="title">
+              <string>Каждые</string>
+             </attribute>
+             <widget class="QLabel" name="label_4">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>0</y>
+                <width>361</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Напоминать о задаче каждые</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignHCenter|Qt::AlignTop</set>
+              </property>
+             </widget>
+             <widget class="QComboBox" name="comboBox">
+              <property name="geometry">
+               <rect>
+                <x>180</x>
+                <y>30</y>
+                <width>191</width>
+                <height>22</height>
+               </rect>
+              </property>
+              <item>
+               <property name="text">
+                <string>Минут</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Часов</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Дней</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Недель</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Месяцев</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Лет</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Десятилетий</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Столетий</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Тысячелетий</string>
+               </property>
+              </item>
+             </widget>
+             <widget class="QSpinBox" name="spinBox">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>30</y>
+                <width>161</width>
+                <height>22</height>
+               </rect>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_6">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>60</y>
+                <width>16</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>C</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+             <widget class="QTimeEdit" name="timeEdit_2">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>60</y>
+                <width>151</width>
+                <height>21</height>
+               </rect>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_7">
+              <property name="geometry">
+               <rect>
+                <x>180</x>
+                <y>60</y>
+                <width>47</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Дня</string>
+              </property>
+             </widget>
+             <widget class="QGroupBox" name="groupBox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>90</y>
+                <width>120</width>
+                <height>171</height>
+               </rect>
+              </property>
+              <property name="title">
+               <string>Дни недели</string>
+              </property>
+              <widget class="QCheckBox" name="checkBox">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>30</y>
+                 <width>91</width>
+                 <height>17</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Понедельник</string>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="checkBox_2">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>50</y>
+                 <width>70</width>
+                 <height>17</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Вторник</string>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="checkBox_3">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>70</y>
+                 <width>70</width>
+                 <height>17</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Среда</string>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="checkBox_4">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>90</y>
+                 <width>70</width>
+                 <height>17</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Четверг</string>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="checkBox_5">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>110</y>
+                 <width>70</width>
+                 <height>17</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Пятница</string>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="checkBox_6">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>130</y>
+                 <width>70</width>
+                 <height>17</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Суббота</string>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="checkBox_7">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>150</y>
+                 <width>91</width>
+                 <height>17</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Воскресенье</string>
+               </property>
+              </widget>
+             </widget>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1" rowspan="2">
+        <widget class="QFrame" name="tasks_frame">
+         <property name="maximumSize">
+          <size>
+           <width>9999</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
           <item row="2" column="0" colspan="4">
            <widget class="QScrollArea" name="scrollArea">
             <property name="horizontalScrollBarPolicy">
@@ -100,13 +541,26 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>460</width>
-               <height>297</height>
+               <width>556</width>
+               <height>322</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout"/>
             </widget>
            </widget>
+          </item>
+          <item row="1" column="2">
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="comboBox_sort">
@@ -141,18 +595,18 @@
             </item>
            </widget>
           </item>
-          <item row="1" column="2">
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="btn_new_task">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+              <bold>false</bold>
+             </font>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
+            <property name="text">
+             <string>Создать новую задачу</string>
             </property>
-           </spacer>
+           </widget>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_sort_2">
@@ -175,6 +629,30 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0" colspan="4">
+           <widget class="QLineEdit" name="lineEdit_find">
+            <property name="font">
+             <font>
+              <pointsize>11</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <widget class="QPushButton" name="btn_del_all_completed_task">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Удалить завершенные</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="3">
            <widget class="QCheckBox" name="cb_reverse_sort">
             <property name="maximumSize">
@@ -193,35 +671,10 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QPushButton" name="btn_new_task">
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-              <bold>false</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Создать новую задачу</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="3">
-           <widget class="QPushButton" name="btn_del_all_completed_task">
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Удалить завершенные</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
-       <item row="0" column="1">
+       <item row="0" column="2" rowspan="2">
         <widget class="QFrame" name="right_menu">
          <property name="minimumSize">
           <size>
@@ -231,7 +684,7 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>222</width>
+           <width>40</width>
            <height>16777215</height>
           </size>
          </property>

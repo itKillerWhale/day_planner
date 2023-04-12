@@ -314,17 +314,34 @@ class MainWindow(QMainWindow):
         self.btn_del_all_completed_task.clicked.connect(self.delite_all_complited_tasks)
         self.btn_settings.clicked.connect(self.open_settings)
 
-        self.menu_animation = QPropertyAnimation(self.right_menu, b'maximumWidth')
+        self.menu_animation = QPropertyAnimation(self.right_menu, b'minimumWidth')
         self.menu_animation.setDuration(350)
         self.menu_animation.setEasingCurve(QEasingCurve.InOutCubic)
 
+        self.tasks_frame_animation = QPropertyAnimation(self.tasks_frame, b'maximumWidth')
+        self.tasks_frame_animation.setDuration(350)
+        self.tasks_frame_animation.setEasingCurve(QEasingCurve.InOutCubic)
+
+        self.create_task_animation_w = QPropertyAnimation(self.create_task_menu, b'maximumWidth')
+        self.create_task_animation_w.setDuration(350)
+        self.create_task_animation_w.setEasingCurve(QEasingCurve.InOutCubic)
+
+        self.create_task_animation_h = QPropertyAnimation(self.create_task_menu, b'maximumHeight')
+        self.create_task_animation_h.setDuration(350)
+        self.create_task_animation_h.setEasingCurve(QEasingCurve.InOutCubic)
+
         self.menu_btn.clicked.connect(self.slide_menu)
         self.menu_visible = False
+        self.create_menu_visible = False
         self.delete_borders()
 
         self.vbox = QVBoxLayout()
 
         self.update_tasks()
+
+    def resizeEvent(self, event):
+        self.create_task_menu.setMaximumSize(
+            self.size()) if self.create_menu_visible else self.tasks_frame.setMaximumSize(self.size())
 
     def update_tasks(self):
         request = ""
@@ -482,15 +499,31 @@ class MainWindow(QMainWindow):
 
     def slide_menu(self):
         if self.menu_visible:
-            self.menu_animation.setStartValue(250)
+            self.menu_animation.setStartValue(150)
             self.menu_animation.setEndValue(40)
             self.menu_animation.start()
             self.menu_visible = False
         else:
             self.menu_animation.setStartValue(40)
-            self.menu_animation.setEndValue(250)
+            self.menu_animation.setEndValue(150)
             self.menu_animation.start()
             self.menu_visible = True
+
+    def slide_create_menu(self):
+        self.create_task_animation_h.setStartValue(self.height() if self.create_menu_visible else 0)
+        self.create_task_animation_h.setEndValue(0 if self.create_menu_visible else self.height())
+
+        self.create_task_animation_w.setStartValue(self.width() if self.create_menu_visible else 0)
+        self.create_task_animation_w.setEndValue(0 if self.create_menu_visible else self.width())
+
+        self.tasks_frame_animation.setStartValue(0 if self.create_menu_visible else self.width())
+        self.tasks_frame_animation.setEndValue(self.width() if self.create_menu_visible else 0)
+
+        self.create_task_animation_h.start()
+        self.create_task_animation_w.start()
+        self.tasks_frame_animation.start()
+
+        self.create_menu_visible = not self.create_menu_visible
 
     def delite_all_complited_tasks(self):
         n = random.randint(1000, 9999)
@@ -505,13 +538,14 @@ class MainWindow(QMainWindow):
             self.update_tasks()
 
     def new_task(self):
-        dlg = Task("", parent=self)
-        mw = qtmodern.windows.ModernWindow(dlg)
-        mw.move(200, 200)
-        mw.show()
-
-        dlg.exec()
-        self.update_tasks()
+        # dlg = Task("", parent=self)
+        # mw = qtmodern.windows.ModernWindow(dlg)
+        # mw.move(200, 200)
+        # mw.show()
+        #
+        # dlg.exec()
+        # self.update_tasks()
+        self.slide_create_menu()
 
     def open_settings(self):
 
