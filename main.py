@@ -115,183 +115,183 @@ class Settings(QDialog):
             bot.polling()
 
 
-class Task(QDialog):
-    def __init__(self, key, parent=None):
-        super().__init__(parent)
-        uic.loadUi('ui/Task.ui', self)
-        self.setWindowTitle("Задача")
-
-        self.key = key
-
-        self.btn_ok.clicked.connect(self.save)
-        self.btn_cancel.clicked.connect(self.close_window)
-        self.btn_del.clicked.connect(self.delite_task)
-
-        self.checkBox_do_prompts.stateChanged.connect(self.update_prompts_widget)
-        self.comboBox_choice.activated.connect(self.update_prompts_widget)
-        self.comboBox.activated.connect(self.important_function)
-        self.comboBox.activated.connect(self.update_groupbox)
-
-        if bool(self.key):
-            with open('db/tasks.json') as file:
-                data = json.load(file)
-            task = data["tasks"][self.key]
-            prompt = data["prompts"]
-
-            self.lineEdit_header_text.setText(task[0])
-            self.textEdit_text.setText(task[1])
-            self.checkBox_completed.setChecked(task[2])
-
-            time_1, time_2 = tuple(self.key.split(";"))
-            time_2 = time_2.replace(":", ".")
-            time_1 = ":".join(time_1.split(":")[::-1])
-
-            self.label_date.setText(" ".join([time_2, time_1]))
-
-            self.checkBox_do_prompts.setChecked(prompt["date"][self.key][2] or prompt["every"][self.key][3])
-
-            # Первый tab
-            date_list = list(map(int, prompt["date"][self.key][1].split(':')[::-1]))
-            self.calendarWidget.setSelectedDate(QDate(date_list[0], date_list[1], date_list[2]))
-
-            time_list = list(map(int, prompt["date"][self.key][0].split(":")))
-            self.timeEdit.setTime(QTime(time_list[1], time_list[0]))
-
-            self.tabWidget.setTabEnabled(0, True)
-
-            # Второй tab
-            self.comboBox.setCurrentText(prompt["every"][self.key][2])
-            self.important_function()
-
-            self.spinBox.setValue(prompt["every"][self.key][1])
-
-            time_list = list(map(int, prompt["every"][self.key][0].split(":")))
-            self.timeEdit_2.setTime(QTime(time_list[1], time_list[0]))
-
-            self.tabWidget.setTabEnabled(1, True)
-
-            checked_list = prompt["every"][self.key][5]
-            self.checkBox.setChecked(True if checked_list[0] == 0 else False)
-            self.checkBox_2.setChecked(bool(checked_list[1]))
-            self.checkBox_3.setChecked(bool(checked_list[2]))
-            self.checkBox_4.setChecked(bool(checked_list[3]))
-            self.checkBox_5.setChecked(bool(checked_list[4]))
-            self.checkBox_6.setChecked(bool(checked_list[5]))
-            self.checkBox_7.setChecked(bool(checked_list[6]))
-
-            if prompt["date"][self.key][2] and prompt["every"][self.key][3]:
-                self.comboBox_choice.setCurrentIndex(2)
-
-            elif prompt["date"][self.key][2]:
-                self.comboBox_choice.setCurrentIndex(1)
-
-            elif prompt["every"][self.key][3]:
-                self.comboBox_choice.setCurrentIndex(0)
-
-        else:
-            self.label_date.setText("")
-            self.timeEdit.setTime(QTime.currentTime().addSecs(600))
-            self.btn_del.hide()
-
-        self.update_groupbox()
-        self.update_prompts_widget()
-
-    def save(self):
-        with open('db/tasks.json') as file:
-            data = json.load(file)
-
-        if bool(self.key):
-            if bool(self.lineEdit_header_text.text()):
-                data["tasks"][self.key][0] = self.lineEdit_header_text.text()
-                data["tasks"][self.key][1] = self.textEdit_text.toPlainText()
-                data["tasks"][self.key][2] = self.checkBox_completed.isChecked()
-
-        else:
-            date, time = str(datetime.datetime.now()).split()
-            time = ":".join(list(map(lambda x: str(round(float(x))).rjust(2, "0"), time.split(":")[::-1])))
-            date = ":".join(date.split("-")[::-1])
-            self.key = f"{time};{date}"
-
-            data["tasks"][self.key] = [self.lineEdit_header_text.text(), self.textEdit_text.toPlainText(),
-                                       self.checkBox_completed.isChecked()]
-
-        # if self.checkBox_do_prompts.isChecked():
-        selected_date = self.calendarWidget.selectedDate()
-        date_string = selected_date.toString("dd:MM:yyyy")
-
-        time = self.timeEdit.time()
-        time_string = time.toString("mm:hh")
-
-        time_2 = self.timeEdit_2.time()
-        time_string_2 = time_2.toString("mm:hh")
-
-        data["prompts"]["date"][self.key] = [time_string, date_string, self.tab.isEnabled()]
-        data["prompts"]["every"][self.key] = [time_string_2, self.spinBox.value(), self.comboBox.currentText(),
-                                              self.tab_2.isEnabled(), 1]
-
-        data["prompts"]["every"][self.key].append([0 if self.checkBox.isChecked() else None,
-                                                   1 if self.checkBox_2.isChecked() else None,
-                                                   2 if self.checkBox_3.isChecked() else None,
-                                                   3 if self.checkBox_4.isChecked() else None,
-                                                   4 if self.checkBox_5.isChecked() else None,
-                                                   5 if self.checkBox_6.isChecked() else None,
-                                                   6 if self.checkBox_7.isChecked() else None])
-
-        with open('db/tasks.json', 'w') as file:
-            json.dump(data, file)
-
-        self.close_window()
-
-    def update_prompts_widget(self):
-        self.tabWidget.setTabEnabled(0, True)
-        self.tabWidget.setTabEnabled(1, True)
-
-        if self.checkBox_do_prompts.isChecked():
-            self.tabWidget.setEnabled(True)
-            self.comboBox_choice.show()
-
-            self.tabWidget.setTabEnabled(self.comboBox_choice.currentIndex(), False)
-
-        else:
-            self.tabWidget.setEnabled(False)
-
-            self.tabWidget.setTabEnabled(0, False)
-            self.tabWidget.setTabEnabled(1, False)
-
-            self.comboBox_choice.hide()
-
-    def delite_task(self):
-        n = random.randint(1000, 9999)
-        input_dialog = QInputDialog()
-        name, ok_pressed = input_dialog.getText(self, "Подтверждение",
-                                                f"Вы точно хотите удалить эту задачу?\nДля подтверждения введите {n}")
-        if ok_pressed and name == str(n):
-            with open('db/tasks.json') as file:
-                data = json.load(file)
-
-            del data["tasks"][self.key]
-            del data["prompts"]["date"][self.key]
-            del data["prompts"]["every"][self.key]
-
-            with open('db/tasks.json', 'w') as file:
-                json.dump(data, file)
-
-            self.close_window()
-
-    def update_groupbox(self):
-        if self.comboBox.currentText() == "Недель":
-            self.groupBox.setEnabled(True)
-        else:
-            self.groupBox.setEnabled(False)
-
-    def important_function(self):
-        if self.comboBox.currentIndex() < 2:
-            self.label_6.setText("C")
-        else:
-            self.label_6.setText("В")
-
-    def close_window(self):
-        self.close()
+# class Task(QDialog):
+#     def __init__(self, key, parent=None):
+#         super().__init__(parent)
+#         uic.loadUi('ui/Task.ui', self)
+#         self.setWindowTitle("Задача")
+#
+#         self.key = key
+#
+#         self.btn_ok.clicked.connect(self.save)
+#         self.btn_cancel.clicked.connect(self.close_window)
+#         self.btn_del.clicked.connect(self.delite_task)
+#
+#         self.checkBox_do_prompts.stateChanged.connect(self.update_prompts_widget)
+#         self.comboBox_choice.activated.connect(self.update_prompts_widget)
+#         self.comboBox.activated.connect(self.important_function)
+#         self.comboBox.activated.connect(self.update_groupbox)
+#
+#         if bool(self.key):
+#             with open('db/tasks.json') as file:
+#                 data = json.load(file)
+#             task = data["tasks"][self.key]
+#             prompt = data["prompts"]
+#
+#             self.lineEdit_header_text.setText(task[0])
+#             self.textEdit_text.setText(task[1])
+#             self.checkBox_completed.setChecked(task[2])
+#
+#             time_1, time_2 = tuple(self.key.split(";"))
+#             time_2 = time_2.replace(":", ".")
+#             time_1 = ":".join(time_1.split(":")[::-1])
+#
+#             self.label_date.setText(" ".join([time_2, time_1]))
+#
+#             self.checkBox_do_prompts.setChecked(prompt["date"][self.key][2] or prompt["every"][self.key][3])
+#
+#             # Первый tab
+#             date_list = list(map(int, prompt["date"][self.key][1].split(':')[::-1]))
+#             self.calendarWidget.setSelectedDate(QDate(date_list[0], date_list[1], date_list[2]))
+#
+#             time_list = list(map(int, prompt["date"][self.key][0].split(":")))
+#             self.timeEdit.setTime(QTime(time_list[1], time_list[0]))
+#
+#             self.tabWidget.setTabEnabled(0, True)
+#
+#             # Второй tab
+#             self.comboBox.setCurrentText(prompt["every"][self.key][2])
+#             self.important_function()
+#
+#             self.spinBox.setValue(prompt["every"][self.key][1])
+#
+#             time_list = list(map(int, prompt["every"][self.key][0].split(":")))
+#             self.timeEdit_2.setTime(QTime(time_list[1], time_list[0]))
+#
+#             self.tabWidget.setTabEnabled(1, True)
+#
+#             checked_list = prompt["every"][self.key][5]
+#             self.checkBox.setChecked(True if checked_list[0] == 0 else False)
+#             self.checkBox_2.setChecked(bool(checked_list[1]))
+#             self.checkBox_3.setChecked(bool(checked_list[2]))
+#             self.checkBox_4.setChecked(bool(checked_list[3]))
+#             self.checkBox_5.setChecked(bool(checked_list[4]))
+#             self.checkBox_6.setChecked(bool(checked_list[5]))
+#             self.checkBox_7.setChecked(bool(checked_list[6]))
+#
+#             if prompt["date"][self.key][2] and prompt["every"][self.key][3]:
+#                 self.comboBox_choice.setCurrentIndex(2)
+#
+#             elif prompt["date"][self.key][2]:
+#                 self.comboBox_choice.setCurrentIndex(1)
+#
+#             elif prompt["every"][self.key][3]:
+#                 self.comboBox_choice.setCurrentIndex(0)
+#
+#         else:
+#             self.label_date.setText("")
+#             self.timeEdit.setTime(QTime.currentTime().addSecs(600))
+#             self.btn_del.hide()
+#
+#         self.update_groupbox()
+#         self.update_prompts_widget()
+#
+#     def save(self):
+#         with open('db/tasks.json') as file:
+#             data = json.load(file)
+#
+#         if bool(self.key):
+#             if bool(self.lineEdit_header_text.text()):
+#                 data["tasks"][self.key][0] = self.lineEdit_header_text.text()
+#                 data["tasks"][self.key][1] = self.textEdit_text.toPlainText()
+#                 data["tasks"][self.key][2] = self.checkBox_completed.isChecked()
+#
+#         else:
+#             date, time = str(datetime.datetime.now()).split()
+#             time = ":".join(list(map(lambda x: str(round(float(x))).rjust(2, "0"), time.split(":")[::-1])))
+#             date = ":".join(date.split("-")[::-1])
+#             self.key = f"{time};{date}"
+#
+#             data["tasks"][self.key] = [self.lineEdit_header_text.text(), self.textEdit_text.toPlainText(),
+#                                        self.checkBox_completed.isChecked()]
+#
+#         # if self.checkBox_do_prompts.isChecked():
+#         selected_date = self.calendarWidget.selectedDate()
+#         date_string = selected_date.toString("dd:MM:yyyy")
+#
+#         time = self.timeEdit.time()
+#         time_string = time.toString("mm:hh")
+#
+#         time_2 = self.timeEdit_2.time()
+#         time_string_2 = time_2.toString("mm:hh")
+#
+#         data["prompts"]["date"][self.key] = [time_string, date_string, self.tab.isEnabled()]
+#         data["prompts"]["every"][self.key] = [time_string_2, self.spinBox.value(), self.comboBox.currentText(),
+#                                               self.tab_2.isEnabled(), 1]
+#
+#         data["prompts"]["every"][self.key].append([0 if self.checkBox.isChecked() else None,
+#                                                    1 if self.checkBox_2.isChecked() else None,
+#                                                    2 if self.checkBox_3.isChecked() else None,
+#                                                    3 if self.checkBox_4.isChecked() else None,
+#                                                    4 if self.checkBox_5.isChecked() else None,
+#                                                    5 if self.checkBox_6.isChecked() else None,
+#                                                    6 if self.checkBox_7.isChecked() else None])
+#
+#         with open('db/tasks.json', 'w') as file:
+#             json.dump(data, file)
+#
+#         self.close_window()
+#
+#     def update_prompts_widget(self):
+#         self.tabWidget.setTabEnabled(0, True)
+#         self.tabWidget.setTabEnabled(1, True)
+#
+#         if self.checkBox_do_prompts.isChecked():
+#             self.tabWidget.setEnabled(True)
+#             self.comboBox_choice.show()
+#
+#             self.tabWidget.setTabEnabled(self.comboBox_choice.currentIndex(), False)
+#
+#         else:
+#             self.tabWidget.setEnabled(False)
+#
+#             self.tabWidget.setTabEnabled(0, False)
+#             self.tabWidget.setTabEnabled(1, False)
+#
+#             self.comboBox_choice.hide()
+#
+#     def delite_task(self):
+#         n = random.randint(1000, 9999)
+#         input_dialog = QInputDialog()
+#         name, ok_pressed = input_dialog.getText(self, "Подтверждение",
+#                                                 f"Вы точно хотите удалить эту задачу?\nДля подтверждения введите {n}")
+#         if ok_pressed and name == str(n):
+#             with open('db/tasks.json') as file:
+#                 data = json.load(file)
+#
+#             del data["tasks"][self.key]
+#             del data["prompts"]["date"][self.key]
+#             del data["prompts"]["every"][self.key]
+#
+#             with open('db/tasks.json', 'w') as file:
+#                 json.dump(data, file)
+#
+#             self.close_window()
+#
+#     def update_groupbox(self):
+#         if self.comboBox.currentText() == "Недель":
+#             self.groupBox.setEnabled(True)
+#         else:
+#             self.groupBox.setEnabled(False)
+#
+#     def important_function(self):
+#         if self.comboBox.currentIndex() < 2:
+#             self.label_6.setText("C")
+#         else:
+#             self.label_6.setText("В")
+#
+#     def close_window(self):
+#         self.close()
 
 
 class MainWindow(QMainWindow):
@@ -305,6 +305,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Планировщик задач на день")
         QSizeGrip(self.size_grip)
 
+        # Назначение методов главного меню
         self.comboBox_sort.activated.connect(self.update_tasks)
         self.cb_reverse_sort.stateChanged.connect(self.update_tasks)
         # self.cb_show_completed_task.stateChanged.connect(self.update_tasks)
@@ -314,6 +315,7 @@ class MainWindow(QMainWindow):
         self.btn_del_all_completed_task.clicked.connect(self.delite_all_complited_tasks)
         self.btn_settings.clicked.connect(self.open_settings)
 
+        # Назначение методов анимации
         self.menu_animation = QPropertyAnimation(self.right_menu, b'minimumWidth')
         self.menu_animation.setDuration(350)
         self.menu_animation.setEasingCurve(QEasingCurve.InOutCubic)
@@ -335,28 +337,30 @@ class MainWindow(QMainWindow):
         self.create_menu_visible = False
         self.delete_borders()
 
+        # Назанчение методов task
+        self.checkBox_do_prompts.stateChanged.connect(self.update_prompts_widget)
+        self.comboBox_choice.activated.connect(self.update_prompts_widget)
+        self.comboBox.activated.connect(self.update_groupbox)
+
         self.vbox = QVBoxLayout()
 
+        # Обновление главного меню
         self.update_tasks()
 
-    def resizeEvent(self, event):
-        self.create_task_menu.setMaximumSize(
-            self.size()) if self.create_menu_visible else self.tasks_frame.setMaximumSize(self.size())
+    # ОБНОВЛЯЮЩИЕ ФУНКЦИИ
 
+    # Функция обновляющяя список tasks в главном меню
     def update_tasks(self):
         request = ""
 
         search_text = self.lineEdit_find.text().lower()
-        print(search_text, f"'%{search_text}%'")
         if bool(search_text):
             request += f"WHERE header LIKE '%{search_text}%' OR text LIKE '%{search_text}%' " \
                        f"OR header LIKE '%{search_text.upper()}%' OR text LIKE '%{search_text.upper()}%' " \
                        f"OR header LIKE '%{search_text.capitalize()}%' OR text LIKE '%{search_text.capitalize()}%'"
 
         tasks = MainWindow.cur.execute(f"""SELECT * FROM tasks {request}""").fetchall()
-        tasks = list(map(lambda x: (x[0], x[1], x[2], x[3] == "Flase", x[4]), tasks))
-
-        print(tasks)
+        tasks = list(map(lambda x: (x[0], x[1], x[2], x[3] == "True", x[4]), tasks))
 
         comboBox_text = self.comboBox_sort.currentText()
         do_revers = self.cb_reverse_sort.isChecked()
@@ -415,6 +419,7 @@ class MainWindow(QMainWindow):
         scrollLayout.setAlignment(QtCore.Qt.AlignTop)
 
         for task in tasks:
+            print(task)
             Group = GroupBox('')
 
             if task[3]:
@@ -464,39 +469,40 @@ class MainWindow(QMainWindow):
 
             scrollLayout.addWidget(Group)
 
-    def delete_borders(self):
-        self.size_grip.setStyleSheet('border: none;')
-        self.frame_3.setStyleSheet('QFrame{border: none;}')
+    # Обновляет активные виджиты в task
+    def update_prompts_widget(self):
+        self.tabWidget.setTabEnabled(0, True)
+        self.tabWidget.setTabEnabled(1, True)
 
-    def onGroupClick(self, title, obj):
-        id_task = int(obj.objectName().split("_")[-1])
+        if self.checkBox_do_prompts.isChecked():
+            self.tabWidget.setEnabled(True)
+            self.comboBox_choice.setEnabled(True)
 
-        # dlg = Task(key, parent=self)
-        # mw = qtmodern.windows.ModernWindow(dlg)
-        # mw.move(200, 200)
-        # mw.show()
-        #
-        # dlg.exec()
-        # self.update_tasks()
-
-    def clicke_completed_cb(self):
-        cb = self.sender()
-        group = cb.parent()
-
-        id_task = int(group.objectName().split("_")[-1])
-
-        MainWindow.cur.execute(f"""UPDATE tasks 
-                                SET completed = {cb.isChecked()} 
-                                WHERE id == {id_task}""")
-
-        if cb.isChecked():
-            group.setStyleSheet(
-                "QGroupBox{ background-color: #696969; border: 2px soild gray; border-radius: 3px; magrin-top: 10px}")
+            self.tabWidget.setTabEnabled(self.comboBox_choice.currentIndex(), False)
 
         else:
-            group.setStyleSheet(
-                "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
+            self.tabWidget.setEnabled(False)
 
+            self.tabWidget.setTabEnabled(0, False)
+            self.tabWidget.setTabEnabled(1, False)
+
+            self.comboBox_choice.setEnabled(False)
+
+    # Обноаляет активность выбора дней недели
+    def update_groupbox(self):
+        if self.comboBox.currentText() == "Недель":
+            self.groupBox.setEnabled(True)
+        else:
+            self.groupBox.setEnabled(False)
+
+    # ФУНКЦИИ АНИМАЦИИ
+
+    # Изменение размеров виджетов при изменении размеров окна
+    def resizeEvent(self, event):
+        self.create_task_menu.setMaximumSize(
+            self.size()) if self.create_menu_visible else self.tasks_frame.setMaximumSize(self.size())
+
+    # Закрытие/Открытие бокового меню
     def slide_menu(self):
         if self.menu_visible:
             self.menu_animation.setStartValue(150)
@@ -509,7 +515,8 @@ class MainWindow(QMainWindow):
             self.menu_animation.start()
             self.menu_visible = True
 
-    def slide_create_menu(self):
+    # Закрытие/Открытие task
+    def slide_change_menu(self):
         self.create_task_animation_h.setStartValue(self.height() if self.create_menu_visible else 0)
         self.create_task_animation_h.setEndValue(0 if self.create_menu_visible else self.height())
 
@@ -525,6 +532,39 @@ class MainWindow(QMainWindow):
 
         self.create_menu_visible = not self.create_menu_visible
 
+    def delete_borders(self):
+        self.size_grip.setStyleSheet('border: none;')
+        self.frame_3.setStyleSheet('QFrame{border: none;}')
+
+    # ФУНКЦИИ ГЛАВНОГО МЕНЮ
+
+    def onGroupClick(self, title, obj):
+        id_task = int(obj.objectName().split("_")[-1])
+
+        self.open_task(id_task)
+
+    # Изменение состояние флага "Завершенно" при нажатии на него в главном меню
+    def clicke_completed_cb(self):
+        cb = self.sender()
+        group = cb.parent()
+
+        id_task = int(group.objectName().split("_")[-1])
+
+        print(cb.isChecked())
+        MainWindow.cur.execute(f"""UPDATE tasks 
+                                SET completed = '{cb.isChecked()}'
+                                WHERE id == {id_task}""")
+        MainWindow.con.commit()
+
+        if cb.isChecked():
+            group.setStyleSheet(
+                "QGroupBox{ background-color: #696969; border: 2px soild gray; border-radius: 3px; magrin-top: 10px}")
+
+        else:
+            group.setStyleSheet(
+                "QGroupBox{border: 2px solid #A5A5A5; border-radius: 3px; magrin-top: 10px}")
+
+    # Удаление всех завершенных task
     def delite_all_complited_tasks(self):
         n = random.randint(1000, 9999)
         input_dialog = QInputDialog()
@@ -537,15 +577,86 @@ class MainWindow(QMainWindow):
 
             self.update_tasks()
 
+    # Создание нового task
     def new_task(self):
-        # dlg = Task("", parent=self)
-        # mw = qtmodern.windows.ModernWindow(dlg)
-        # mw.move(200, 200)
-        # mw.show()
+        self.open_task(None)
+
+    # ФУНКЦИИ TASKS
+    def open_task(self, task_id):
+        self.slide_change_menu()
+
+        if not bool(task_id):
+            self.update_prompts_widget()
+            self.btn_del.hide()
+            self.label_date.setText("")
+            return None
+
+        self.btn_del.show()
+        task = MainWindow.cur.execute(f"""SELECT
+                                *
+                                    FROM
+                                tasks
+                            LEFT JOIN one_time_reminders ON tasks.id = one_time_reminders.task_id
+                            LEFT JOIN reusable_reminders ON tasks.id = reusable_reminders.task_id
+                            
+                            WHERE
+                            tasks.id == {task_id}
+                                """).fetchall()[0]
+        print(task)
+
+        self.lineEdit_header_text.setText(task[1])
+        self.textEdit_text.setText(task[2])
+        self.checkBox_completed.setChecked(task[3] == "True")
+        self.checkBox_do_prompts.setChecked(task[5] == "True")
+
+        self.label_date.setText(task[4])
+
+        # Первый tab
+        date = list((map(int, task[8].split(".")[::-1])))
+        self.calendarWidget.setSelectedDate(QDate(date[0], date[1], date[2]))
+
+        time = list(map(int, task[9].split(":")))
+        self.timeEdit.setTime(QTime(time[0], time[1]))
+
+        self.tabWidget.setTabEnabled(0, task[10] == "True")
+
+        # Второй tab
         #
-        # dlg.exec()
-        # self.update_tasks()
-        self.slide_create_menu()
+        # self.comboBox.setCurrentText(prompt["every"][self.key][2])
+        # self.important_function()
+        #
+        # self.spinBox.setValue(prompt["every"][self.key][1])
+        #
+        # time_list = list(map(int, prompt["every"][self.key][0].split(":")))
+        # self.timeEdit_2.setTime(QTime(time_list[1], time_list[0]))
+        #
+        # self.tabWidget.setTabEnabled(1, True)
+        #
+        # checked_list = prompt["every"][self.key][5]
+        # self.checkBox.setChecked(True if checked_list[0] == 0 else False)
+        # self.checkBox_2.setChecked(bool(checked_list[1]))
+        # self.checkBox_3.setChecked(bool(checked_list[2]))
+        # self.checkBox_4.setChecked(bool(checked_list[3]))
+        # self.checkBox_5.setChecked(bool(checked_list[4]))
+        # self.checkBox_6.setChecked(bool(checked_list[5]))
+        # self.checkBox_7.setChecked(bool(checked_list[6]))
+        #
+        # if prompt["date"][self.key][2] and prompt["every"][self.key][3]:
+        #     self.comboBox_choice.setCurrentIndex(2)
+        #
+        # elif prompt["date"][self.key][2]:
+        #     self.comboBox_choice.setCurrentIndex(1)
+        #
+        # elif prompt["every"][self.key][3]:
+        #     self.comboBox_choice.setCurrentIndex(0)
+        #
+        # else:
+        #     self.label_date.setText("")
+        #     self.timeEdit.setTime(QTime.currentTime().addSecs(600))
+        #     self.btn_del.hide()
+        #
+        self.update_groupbox()
+        self.update_prompts_widget()
 
     def open_settings(self):
 
