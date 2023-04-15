@@ -342,6 +342,10 @@ class MainWindow(QMainWindow):
         self.comboBox_choice.activated.connect(self.update_prompts_widget)
         self.comboBox.activated.connect(self.update_groupbox)
 
+        self.btn_ok.clicked.connect(self.save)
+        self.btn_cancel.clicked.connect(self.close_window)
+        self.btn_del.clicked.connect(self.delite_task)
+
         self.vbox = QVBoxLayout()
 
         # Обновление главного меню
@@ -516,7 +520,7 @@ class MainWindow(QMainWindow):
             self.menu_visible = True
 
     # Закрытие/Открытие task
-    def slide_change_menu(self):
+    def slide_task_menu(self):
         self.create_task_animation_h.setStartValue(self.height() if self.create_menu_visible else 0)
         self.create_task_animation_h.setEndValue(0 if self.create_menu_visible else self.height())
 
@@ -574,6 +578,7 @@ class MainWindow(QMainWindow):
 
         if ok_pressed and name == str(n):
             MainWindow.cur.execute(f"""DELETE FROM tasks WHERE completed == 'True'""").fetchall()
+            MainWindow.con.commit()
 
             self.update_tasks()
 
@@ -583,7 +588,9 @@ class MainWindow(QMainWindow):
 
     # ФУНКЦИИ TASKS
     def open_task(self, task_id):
-        self.slide_change_menu()
+        self.slide_task_menu()
+
+        self.task_id = task_id
 
         if not bool(task_id):
             self.update_prompts_widget()
@@ -657,6 +664,72 @@ class MainWindow(QMainWindow):
         #
         self.update_groupbox()
         self.update_prompts_widget()
+
+    def close_window(self):
+        self.slide_task_menu()
+
+    def save(self):
+        if not bool(self.task_id):
+            value = (
+                self.lineEdit_header_text.text(), self.textEdit_text.toPlainText(),
+                str(self.checkBox_completed.isChecked()),
+                datetime.datetime.now().strftime("%d.%m.%Y/%H:%M"), str(self.checkBox_do_prompts.isChecked()))
+
+            MainWindow.cur.execute(
+                f"""INSERT INTO tasks(header, text, completed, creation_date, remind) VALUES {value}""")
+
+            id = MainWindow.cur.execute("SELECT id FROM tasks ORDER BY id DESC LIMIT 1").fetchall()[0][0]
+
+            value_2 = (id, self.calendarWidget.selectedDate().fromString('dd.MM.yyyy'), self.timeEdit.time().fromString('hh:mm'), self.tab.isEnabled())
+            print(self.calendarWidget.selectedDate())
+            print(f"""INSERT INTO one_time_reminders(task_id, date, time, remind) VALUES {value_2}""")
+            MainWindow.cur.execute(
+                f"""INSERT INTO one_time_reminders(task_id, date, time, remind) VALUES {value_2}""")
+
+            # value = (self.task_id, self.calendarWidget.selectedDate(), self.timeEdit.time(), self.tab.isEnabled())
+            # print(f"""INSERT INTO one_time_reminders(task_id, date, time, remind) VALUES {value}""")
+            # MainWindow.cur.execute(f"""INSERT INTO one_time_reminders(task_id, date, time, remind) VALUES {value}""")
+
+            MainWindow.con.commit()
+        else:
+            MainWindow.cur.execute(
+                f"""UPDATE tasks 
+                    SET 
+                    header = '{self.lineEdit_header_text.text()}', 
+                    text = '{self.textEdit_text.toPlainText()}', 
+                    completed = '{self.checkBox_completed.isChecked()}', 
+                    creation_date = '{self.label_date.text()}', 
+                    remind = '{self.checkBox_do_prompts.isChecked()}' 
+                    WHERE 
+                    id = {self.task_id}""")
+
+            MainWindow.cur.execute(
+                f"""UPDATE one_time_reminders 
+                    SET 
+                    date = '{self.textEdit_text.toPlainText()}', 
+                    time = '{self.checkBox_completed.isChecked()}', 
+                    remind = '{self.label_date.text()}'
+                    WHERE 
+                    task_id = {self.task_id}""")
+
+            MainWindow.con.commit()
+
+        self.slide_task_menu()
+        self.update_tasks()
+
+    def delite_task(self):
+        n = random.randint(1000, 9999)
+        input_dialog = QInputDialog()
+        name, ok_pressed = input_dialog.getText(self, "Подтверждение",
+                                                f"Вы точно хотите удалить все завершённe задачи?"
+                                                f"\nДля подтверждения введите {n}")
+
+        if ok_pressed and name == str(n):
+            MainWindow.cur.execute(f"""DELETE from tasks WHERE id = {self.task_id}""")
+            MainWindow.con.commit()
+
+            self.slide_task_menu()
+            self.update_tasks()
 
     def open_settings(self):
 
