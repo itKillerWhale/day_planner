@@ -341,6 +341,7 @@ class MainWindow(QMainWindow):
         self.checkBox_do_prompts.stateChanged.connect(self.update_prompts_widget)
         self.comboBox_choice.activated.connect(self.update_prompts_widget)
         self.comboBox.activated.connect(self.update_groupbox)
+        self.comboBox.activated.connect(self.important_function)
 
         self.btn_ok.clicked.connect(self.save)
         self.btn_cancel.clicked.connect(self.close_window)
@@ -499,6 +500,12 @@ class MainWindow(QMainWindow):
         else:
             self.groupBox.setEnabled(False)
 
+    def important_function(self):
+        if self.comboBox.currentIndex() < 2:
+            self.label_6.setText("C")
+        else:
+            self.label_6.setText("В")
+
     # ФУНКЦИИ АНИМАЦИИ
 
     # Изменение размеров виджетов при изменении размеров окна
@@ -577,7 +584,20 @@ class MainWindow(QMainWindow):
                                                 f"\nДля подтверждения введите {n}")
 
         if ok_pressed and name == str(n):
+            task_id_list = MainWindow.cur.execute(f"""SELECT id FROM tasks WHERE completed == 'True'""").fetchall()
             MainWindow.cur.execute(f"""DELETE FROM tasks WHERE completed == 'True'""").fetchall()
+
+            task_id_list = tuple(map(lambda x: x[0], task_id_list))
+            if len(task_id_list) > 1:
+                MainWindow.cur.execute(
+                    f"""DELETE FROM one_time_reminders WHERE task_id IN {task_id_list}""").fetchall()
+                MainWindow.cur.execute(
+                    f"""DELETE FROM reusable_reminders WHERE task_id IN {task_id_list}""").fetchall()
+            else:
+                MainWindow.cur.execute(
+                    f"""DELETE FROM one_time_reminders WHERE task_id = {task_id_list[0]}""").fetchall()
+                MainWindow.cur.execute(
+                    f"""DELETE FROM reusable_reminders WHERE task_id = {task_id_list[0]}""").fetchall()
             MainWindow.con.commit()
 
             self.update_tasks()
@@ -596,6 +616,17 @@ class MainWindow(QMainWindow):
             self.update_prompts_widget()
             self.btn_del.hide()
             self.label_date.setText("")
+
+            self.lineEdit_header_text.setText("")
+            self.textEdit_text.setText("")
+            self.checkBox_completed.setChecked(False)
+            self.checkBox_do_prompts.setChecked(False)
+
+            date = list(map(int, datetime.datetime.now().strftime("%Y.%m.%d").split(".")))
+            self.calendarWidget.setSelectedDate(QDate(date[0], date[1], date[2]))
+
+            self.timeEdit.setTime(QTime(0, 0))
+
             return None
 
         self.btn_del.show()
@@ -625,10 +656,20 @@ class MainWindow(QMainWindow):
         time = list(map(int, task[9].split(":")))
         self.timeEdit.setTime(QTime(time[0], time[1]))
 
-        self.tabWidget.setTabEnabled(0, task[10] == "True")
-
         # Второй tab
-        #
+        time_2 = list(map(int, task[16].split(":")))
+        self.timeEdit_2.setTime(QTime(time_2[0], time_2[1]))
+
+        self.spinBox.setValue(task[13])
+
+        self.comboBox.setCurrentIndex(task[14])
+
+        checkBox_list = [self.checkBox, self.checkBox_2, self.checkBox_3, self.checkBox_4, self.checkBox_5,
+                         self.checkBox_6, self.checkBox_7]
+        week_days_list = list(map(int, list(task[17])))
+        for n in week_days_list:
+            checkBox_list[n].setChecked(True)
+
         # self.comboBox.setCurrentText(prompt["every"][self.key][2])
         # self.important_function()
         #
@@ -662,6 +703,7 @@ class MainWindow(QMainWindow):
         #     self.timeEdit.setTime(QTime.currentTime().addSecs(600))
         #     self.btn_del.hide()
         #
+        self.important_function()
         self.update_groupbox()
         self.update_prompts_widget()
 
@@ -680,15 +722,31 @@ class MainWindow(QMainWindow):
 
             id = MainWindow.cur.execute("SELECT id FROM tasks ORDER BY id DESC LIMIT 1").fetchall()[0][0]
 
-            value_2 = (id, self.calendarWidget.selectedDate().fromString('dd.MM.yyyy'), self.timeEdit.time().fromString('hh:mm'), self.tab.isEnabled())
-            print(self.calendarWidget.selectedDate())
-            print(f"""INSERT INTO one_time_reminders(task_id, date, time, remind) VALUES {value_2}""")
+            selected_date = self.calendarWidget.selectedDate()
+            date = selected_date.toString("dd.MM.yyyy")
+            selected_time = self.timeEdit.time()
+            time = selected_time.toString("hh:mm")
+
+            value_2 = (id, date, time, self.tab.isEnabled())
             MainWindow.cur.execute(
                 f"""INSERT INTO one_time_reminders(task_id, date, time, remind) VALUES {value_2}""")
 
-            # value = (self.task_id, self.calendarWidget.selectedDate(), self.timeEdit.time(), self.tab.isEnabled())
-            # print(f"""INSERT INTO one_time_reminders(task_id, date, time, remind) VALUES {value}""")
-            # MainWindow.cur.execute(f"""INSERT INTO one_time_reminders(task_id, date, time, remind) VALUES {value}""")
+            week_days = "".join(["0" if self.checkBox.isChecked() else "",
+                                 "1" if self.checkBox_2.isChecked() else "",
+                                 "2" if self.checkBox_3.isChecked() else "",
+                                 "3" if self.checkBox_4.isChecked() else "",
+                                 "4" if self.checkBox_5.isChecked() else "",
+                                 "5" if self.checkBox_6.isChecked() else "",
+                                 "6" if self.checkBox_7.isChecked() else ""])
+
+            time_2 = self.timeEdit_2.time()
+            time_string_2 = time_2.toString("hh:mm")
+
+            value_3 = (id, self.spinBox.value(), self.comboBox.currentIndex(),
+                       datetime.datetime.now().strftime("%d.%m.%Y"), time_string_2, week_days, self.tab_2.isEnabled())
+
+            MainWindow.cur.execute(f"""INSERT INTO reusable_reminders(task_id, amount, unit, start_date, time, 
+            week_days, remind) VALUES {value_3}""")
 
             MainWindow.con.commit()
         else:
@@ -703,12 +761,39 @@ class MainWindow(QMainWindow):
                     WHERE 
                     id = {self.task_id}""")
 
+            selected_date = self.calendarWidget.selectedDate()
+            date = selected_date.toString("dd.MM.yyyy")
+            selected_time = self.timeEdit.time()
+            time = selected_time.toString("hh:mm")
+
             MainWindow.cur.execute(
                 f"""UPDATE one_time_reminders 
                     SET 
-                    date = '{self.textEdit_text.toPlainText()}', 
-                    time = '{self.checkBox_completed.isChecked()}', 
-                    remind = '{self.label_date.text()}'
+                    date = '{date}', 
+                    time = '{time}', 
+                    remind = '{self.tab.isEnabled()}'
+                    WHERE 
+                    task_id = {self.task_id}""")
+
+            time_2 = self.timeEdit_2.time()
+            time_string_2 = time_2.toString("hh:mm")
+
+            week_days = "".join(["0" if self.checkBox.isChecked() else "",
+                                 "1" if self.checkBox_2.isChecked() else "",
+                                 "2" if self.checkBox_3.isChecked() else "",
+                                 "3" if self.checkBox_4.isChecked() else "",
+                                 "4" if self.checkBox_5.isChecked() else "",
+                                 "5" if self.checkBox_6.isChecked() else "",
+                                 "6" if self.checkBox_7.isChecked() else ""])
+
+            MainWindow.cur.execute(
+                f"""UPDATE reusable_reminders
+                    SET 
+                    amount = {self.spinBox.value()},
+                    unit = {self.comboBox.currentIndex()},
+                    time = '{time_string_2}',
+                    week_days = '{week_days}',
+                    remind = '{self.tab_2.isEnabled()}'
                     WHERE 
                     task_id = {self.task_id}""")
 
@@ -726,6 +811,8 @@ class MainWindow(QMainWindow):
 
         if ok_pressed and name == str(n):
             MainWindow.cur.execute(f"""DELETE from tasks WHERE id = {self.task_id}""")
+            MainWindow.cur.execute(f"""DELETE from one_time_reminders WHERE task_id = {self.task_id}""")
+            MainWindow.cur.execute(f"""DELETE from reusable_reminders WHERE task_id = {self.task_id}""")
             MainWindow.con.commit()
 
             self.slide_task_menu()
